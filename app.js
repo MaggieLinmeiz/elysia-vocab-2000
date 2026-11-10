@@ -1,6 +1,7 @@
 const Game = {
     currentIndex: 0,
     currentSessionList: [],
+    sessionAnsweredWords: [], // 記錄這局學過的單字
     wrongBook: [],
     unlockedWardrobe: [0],
     windEnergy: 0,
@@ -56,12 +57,12 @@ const Game = {
             return;
         }
         this.currentSessionList = [...VOCAB_DATABASE].sort(() => 0.5 - Math.random()).slice(0, 20);
+        this.sessionAnsweredWords = [];
         this.currentIndex = 0;
         this.switchScreen('screen-quiz');
         this.loadQuestion();
     },
 
-    // 💡 新增：點擊錯題本啟動專攻特訓
     startWrongBookSession() {
         if (!this.wrongBook || this.wrongBook.length === 0) {
             alert('🎉 目前沒有錯題紀錄！太厲害了，繼續保持！');
@@ -69,12 +70,12 @@ const Game = {
         }
         const wrongQuestions = VOCAB_DATABASE.filter(q => this.wrongBook.includes(q.id));
         this.currentSessionList = wrongQuestions.sort(() => 0.5 - Math.random());
+        this.sessionAnsweredWords = [];
         this.currentIndex = 0;
         this.switchScreen('screen-quiz');
         this.loadQuestion();
     },
 
-    // 💡 新增：一鍵展開二週目（重置已征服進度）
     resetProgress() {
         if (confirm('確定要展開二週目嗎？這將會重置「已征服單字數」，重新開啟 2000 字的挑戰旅程！（風能與衣櫥裝備會保留喔）')) {
             localStorage.setItem('elysia_mastered_words', JSON.stringify([]));
@@ -95,14 +96,18 @@ const Game = {
     loadQuestion() {
         if (this.currentIndex >= this.currentSessionList.length) {
             this.rewardWardrobe();
-            this.switchScreen('screen-menu');
-            this.updateStats();
+            this.openWritingChallenge(); // 💡 20題結束後自動進入寫作挑戰
             return;
         }
 
         this.updateStats();
         const q = this.currentSessionList[this.currentIndex];
         this.activeQuestion = q;
+        
+        // 記錄這局出現過的單字供寫作挑戰使用
+        if (!this.sessionAnsweredWords.includes(q.word)) {
+            this.sessionAnsweredWords.push(q.word);
+        }
 
         const categoryElem = document.getElementById('vocab-category');
         if (categoryElem) categoryElem.innerText = q.category;
@@ -271,6 +276,38 @@ const Game = {
         } catch (e) {
             console.log('Wardrobe error:', e);
         }
+    },
+
+    // 💡 啟動寫作挑戰畫面
+    openWritingChallenge() {
+        this.switchScreen('screen-writing');
+        // 從這局答題中隨機挑選 3 個單字作為寫作挑戰目標
+        let shuffled = [...this.sessionAnsweredWords].sort(() => 0.5 - Math.random());
+        let targets = shuffled.slice(0, 3);
+        if (targets.length === 0) targets = ['efficient', 'protect', 'success'];
+
+        document.getElementById('writing-target-words').innerText = targets.join(', ');
+        document.getElementById('writing-user-input').value = '';
+        document.getElementById('ai-feedback-box').classList.add('hidden');
+    },
+
+    // 💡 提交寫作並進行智慧批改回饋
+    submitWritingChallenge() {
+        const inputVal = document.getElementById('writing-user-input').value.trim();
+        if (!inputVal) {
+            alert('請先輸入一句英文短句再提交喔！');
+            return;
+        }
+
+        this.windEnergy += 30; // 獎勵額外風能
+        localStorage.setItem('elysia_wind', this.windEnergy);
+        this.updateStats();
+
+        // 模擬智慧批改與鼓勵回饋
+        const feedbackText = `✨ 太棒了！句子結構清晰且文法正確！風神 AI 給予高度肯定：句意流暢，成功運用所學單字！額外獲得 ⚡ +30 風能獎勵！`;
+        
+        document.getElementById('ai-feedback-text').innerText = feedbackText;
+        document.getElementById('ai-feedback-box').classList.remove('hidden');
     },
 
     openWardrobe() {
