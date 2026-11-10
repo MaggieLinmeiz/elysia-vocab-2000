@@ -56,7 +56,7 @@ const Game = {
             alert('⚠️ 題庫尚未載入！');
             return;
         }
-        // 💡 確保每次挑戰精準 20 題
+        // 💡 嚴格鎖定每次載入精準 20 題
         this.currentSessionList = [...VOCAB_DATABASE].sort(() => 0.5 - Math.random()).slice(0, 20);
         this.sessionAnsweredWords = [];
         this.currentIndex = 0;
