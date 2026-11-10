@@ -16,7 +16,7 @@
             </div>
             <div class="stats-panel">
                 <div class="stat-badge">🌪️ 風能：<span id="wind-energy">0</span></div>
-                <button class="nav-btn" onclick="Game.openWardrobe()">👗 暖暖衣櫥：<span id="wardrobe-count">0/5</span>件</button>
+                <button class="nav-btn" onclick="Game.openWardrobe()">👗 暖暖衣櫥：<span id="wardrobe-count">1/5</span> 件</button>
                 <button id="btn-wrong-book" class="nav-btn">📖 錯題本 (<span id="wrong-count">0</span>)</button>
             </div>
         </header>
@@ -46,6 +46,12 @@
                 </div>
 
                 <div class="card-container">
+                    <!-- 模式切換按鈕區 -->
+                    <div class="mode-switch-container" style="display: flex; justify-content: center; gap: 10px; margin-bottom: 15px;">
+                        <button id="mode-choice-btn" class="mode-btn active" onclick="Game.setMode('choice')">🎯 4選1模式</button>
+                        <button id="mode-spell-btn" class="mode-btn" onclick="Game.setMode('spell')">✏️ 拼字特訓模式</button>
+                    </div>
+
                     <div class="card-header">
                         <span id="vocab-category" class="tag">分類：核心單字</span>
                         <button class="audio-btn" onclick="Game.speakCurrentWord()">🔊 讀音</button>
@@ -55,8 +61,15 @@
                         <p id="vocab-phonetic">/ ... /</p>
                     </div>
                     
+                    <!-- 4 選 1 選項容器 -->
                     <div id="options-container" class="options-grid">
                         <!-- 選項由 JS 動態生成 -->
+                    </div>
+
+                    <!-- 拼字輸入區域（預設隱藏） -->
+                    <div id="spell-container" class="spell-container" style="display: none; margin-top: 15px;">
+                        <input type="text" id="spell-input" placeholder="請輸入英文單字..." autocomplete="off" spellcheck="false" style="width: 100%; padding: 12px; font-size: 1.1rem; border-radius: 8px; border: 2px solid #6b46c1; background: rgba(255,255,255,0.1); color: #fff; text-align: center;">
+                        <button onclick="Game.checkSpellAnswer()" class="primary-btn" style="width: 100%; margin-top: 10px; padding: 10px;">提交拼字答案 ⚔️</button>
                     </div>
 
                     <!-- 學習解析區 (答題後展開) -->
