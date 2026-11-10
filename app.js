@@ -10,6 +10,19 @@ const Game = {
 
     init() {
         this.updateStats();
+        this.bindEvents();
+    },
+
+    bindEvents() {
+        // 支援鍵盤 Enter 鍵直接提交拼字答案
+        document.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && this.quizMode === 'spell') {
+                const spellInput = document.getElementById('spell-input');
+                if (spellInput && document.activeElement === spellInput && !spellInput.disabled) {
+                    this.checkSpellAnswer();
+                }
+            }
+        });
     },
 
     updateStats() {
@@ -41,7 +54,6 @@ const Game = {
 
     loadQuestion() {
         if (this.currentIndex >= this.currentSessionList.length) {
-            alert('🎉 太棒了！完成今日 20 題風元素特訓！解鎖 1 件暖暖換裝部件！');
             this.rewardWardrobe();
             this.switchScreen('screen-menu');
             return;
@@ -61,7 +73,7 @@ const Game = {
         if (this.quizMode === 'choice') {
             optionsContainer.style.display = 'grid';
             spellContainer.style.display = 'none';
-            wordDisplay.innerText = q.word; // 4選1模式正常顯示英文單字
+            wordDisplay.innerText = q.word; // 4選1模式顯示英文單字
             optionsContainer.innerHTML = '';
 
             let options = [q.meaning];
@@ -82,7 +94,7 @@ const Game = {
             optionsContainer.style.display = 'none';
             spellContainer.style.display = 'block';
             
-            // 拼字模式隱藏英文單字，改顯示中文提示與挑戰狀態
+            // 拼字模式隱藏英文單字，改顯示中文提示
             wordDisplay.innerText = `✍️ 請拼出中文：「${q.meaning}」`;
 
             const input = document.getElementById('spell-input');
@@ -133,16 +145,15 @@ const Game = {
         inputElem.disabled = true;
 
         if (userWord === correctWord) {
-            this.windEnergy += 15;
+            this.windEnergy += 15; // 拼字正確獲得更多風能！
             this.wrongBook = this.wrongBook.filter(id => id !== this.activeQuestion.id);
-            alert('✨ 拼字正確！風元素共鳴爆發！');
         } else {
             if (!this.wrongBook.includes(this.activeQuestion.id)) {
                 this.wrongBook.push(this.activeQuestion.id);
             }
-            alert(`❌ 哎呀！正確拼法應為：${this.activeQuestion.word}`);
         }
 
+        // 靜態展示解析與累積風能，完全不跳出 alert 彈窗！
         this.saveAndShowExplanation();
     },
 
@@ -152,52 +163,5 @@ const Game = {
         this.updateStats();
 
         const exp = this.activeQuestion;
-        document.getElementById('vocab-word').innerText = exp.word; // 結算時秀出正確單字
-        document.getElementById('exp-meaning').innerText = exp.meaning;
-        document.getElementById('exp-collocation').innerText = exp.collocation;
-        document.getElementById('exp-confusing').innerText = exp.confusing;
-        document.getElementById('exp-exampoint').innerText = exp.examPoint;
-        document.getElementById('exp-example').innerText = exp.example;
-        document.getElementById('explanation-box').classList.remove('hidden');
-    },
-
-    nextQuestion() {
-        this.currentIndex++;
-        this.loadQuestion();
-    },
-
-    rewardWardrobe() {
-        if (this.unlockedWardrobe.length < 5) {
-            this.unlockedWardrobe.push(this.unlockedWardrobe.length);
-            localStorage.setItem('elysia_wardrobe', JSON.stringify(this.unlockedWardrobe));
-        }
-    },
-
-    openWardrobe() {
-        this.switchScreen('screen-wardrobe');
-        const container = document.getElementById('wardrobe-grid-container');
-        container.innerHTML = '';
-
-        const items = [
-            { name: "流光風神之翼", icon: "🦋" },
-            { name: "星空晚禮服", icon: "✨" },
-            { name: "深藍魔導帽", icon: "🪄" },
-            { name: "精靈風鈴靴", icon: "🥿" },
-            { name: "A++ 榮譽皇冠", icon: "👑" }
-        ];
-
-        items.forEach((item, index) => {
-            const isUnlocked = this.unlockedWardrobe.includes(index);
-            const div = document.createElement('div');
-            div.className = `wardrobe-item ${isUnlocked ? 'unlocked' : ''}`;
-            div.innerHTML = `<span>${item.icon}</span><p>${item.name}</p><small>${isUnlocked ? '已解鎖' : '未解鎖'}</small>`;
-            container.appendChild(div);
-        });
-    },
-
-    returnMenu() {
-        this.switchScreen('screen-menu');
-    }
-};
-
-window.onload = () => Game.init();
+        document.getElementById('vocab-word').innerText = exp.word; // 結算時還原顯示正確單字
+        document.getElementById('exp-meaning
