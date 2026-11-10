@@ -16,6 +16,19 @@ const Game = {
         document.getElementById('wind-energy').innerText = this.windEnergy;
         document.getElementById('wrong-count').innerText = this.wrongBook.length;
         document.getElementById('wardrobe-count').innerText = `${this.unlockedWardrobe.length}/5`;
+        
+        // 💡 更新已征服單字總數統計
+        const masteredWords = JSON.parse(localStorage.getItem('elysia_mastered_words')) || [];
+        const masteredElem = document.getElementById('total-mastered');
+        if (masteredElem) {
+            masteredElem.innerText = masteredWords.length;
+        }
+
+        // 更新當前進度顯示
+        const progressElem = document.getElementById('progress-text');
+        if (progressElem && this.currentSessionList.length > 0) {
+            progressElem.innerText = `${this.currentIndex + 1} / ${this.currentSessionList.length}`;
+        }
     },
 
     switchScreen(screenId) {
@@ -24,7 +37,8 @@ const Game = {
     },
 
     startDailySession() {
-        this.currentSessionList = [...VOCAB_DATABASE].sort(() => 0.5 - Math.random()).slice(0, 5);
+        // 🎯 每次挑戰精準 20 題
+        this.currentSessionList = [...VOCAB_DATABASE].sort(() => 0.5 - Math.random()).slice(0, 20);
         this.currentIndex = 0;
         this.switchScreen('screen-quiz');
         this.loadQuestion();
@@ -34,8 +48,6 @@ const Game = {
         this.quizMode = mode;
         document.getElementById('mode-choice-btn').classList.toggle('active', mode === 'choice');
         document.getElementById('mode-spell-btn').classList.toggle('active', mode === 'spell');
-        
-        // 重新載入當前題目以切換顯示介面
         this.loadQuestion();
     },
 
@@ -43,9 +55,11 @@ const Game = {
         if (this.currentIndex >= this.currentSessionList.length) {
             this.rewardWardrobe();
             this.switchScreen('screen-menu');
+            this.updateStats();
             return;
         }
 
+        this.updateStats();
         const q = this.currentSessionList[this.currentIndex];
         this.activeQuestion = q;
 
@@ -60,7 +74,7 @@ const Game = {
         if (this.quizMode === 'choice') {
             optionsContainer.style.display = 'grid';
             spellContainer.style.display = 'none';
-            wordDisplay.innerText = q.word; // 4選1模式顯示英文單字
+            wordDisplay.innerText = q.word;
             optionsContainer.innerHTML = '';
 
             let options = [q.meaning];
@@ -81,7 +95,6 @@ const Game = {
             optionsContainer.style.display = 'none';
             spellContainer.style.display = 'block';
             
-            // 拼字模式隱藏英文單字，改顯示中文提示
             wordDisplay.innerText = `✍️ 請拼出中文：「${q.meaning}」`;
 
             const input = document.getElementById('spell-input');
@@ -90,7 +103,6 @@ const Game = {
                 input.disabled = false;
                 input.focus();
                 
-                // 綁定 Enter 鍵直接送出
                 input.onkeypress = (e) => {
                     if (e.key === 'Enter') {
                         this.checkSpellAnswer();
@@ -110,6 +122,14 @@ const Game = {
         }
     },
 
+    recordMasteredWord() {
+        let masteredWords = JSON.parse(localStorage.getItem('elysia_mastered_words')) || [];
+        if (!masteredWords.includes(this.activeQuestion.id)) {
+            masteredWords.push(this.activeQuestion.id);
+            localStorage.setItem('elysia_mastered_words', JSON.stringify(masteredWords));
+        }
+    },
+
     checkAnswer(selected, correct, btnElement) {
         const buttons = document.querySelectorAll('.option-btn');
         buttons.forEach(b => b.disabled = true);
@@ -118,6 +138,7 @@ const Game = {
             btnElement.classList.add('correct');
             this.windEnergy += 10;
             this.wrongBook = this.wrongBook.filter(id => id !== this.activeQuestion.id);
+            this.recordMasteredWord(); // 記錄已征服
         } else {
             btnElement.classList.add('wrong');
             buttons.forEach(b => {
@@ -133,7 +154,7 @@ const Game = {
 
     checkSpellAnswer() {
         const inputElem = document.getElementById('spell-input');
-        if (!inputElem || inputElem.disabled) return; // 防止重複送出
+        if (!inputElem || inputElem.disabled) return;
         
         const userWord = inputElem.value.trim().toLowerCase();
         const correctWord = this.activeQuestion.word.trim().toLowerCase();
@@ -141,8 +162,9 @@ const Game = {
         inputElem.disabled = true;
 
         if (userWord === correctWord) {
-            this.windEnergy += 15; // 拼字正確獲得更多風能！
+            this.windEnergy += 15;
             this.wrongBook = this.wrongBook.filter(id => id !== this.activeQuestion.id);
+            this.recordMasteredWord(); // 記錄已征服
         } else {
             if (!this.wrongBook.includes(this.activeQuestion.id)) {
                 this.wrongBook.push(this.activeQuestion.id);
@@ -158,7 +180,7 @@ const Game = {
         this.updateStats();
 
         const exp = this.activeQuestion;
-        document.getElementById('vocab-word').innerText = exp.word; // 結算時還原顯示正確單字
+        document.getElementById('vocab-word').innerText = exp.word;
         document.getElementById('exp-meaning').innerText = exp.meaning;
         document.getElementById('exp-collocation').innerText = exp.collocation;
         document.getElementById('exp-confusing').innerText = exp.confusing;
@@ -203,6 +225,7 @@ const Game = {
 
     returnMenu() {
         this.switchScreen('screen-menu');
+        this.updateStats();
     }
 };
 
