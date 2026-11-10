@@ -1,0 +1,122 @@
+const VOCAB_DATABASE = [
+    {
+        id: 1,
+        word: "embarrassed",
+        phonetic: "/ɪmˈbær.əst/",
+        category: "情緒與性格 (Emotions)",
+        meaning: "感到難堪的；尷尬的",
+        collocation: "be embarrassed about / by sth.",
+        confusing: "embarrassing (令人尷尬的 - 修飾事物)",
+        phrase: "feel embarrassed to do sth.",
+        examPoint: "會考常考 -ed (修飾人自身的感受) vs -ing (修飾事物特性) 形容詞辨析。",
+        example: "She felt embarrassed when she forgot her lines on stage."
+    },
+    {
+        id: 2,
+        word: "considerate",
+        phonetic: "/kənˈsɪd.ər.ət/",
+        category: "情緒與性格 (Emotions)",
+        meaning: "體貼的；替人著想的",
+        collocation: "be considerate of others",
+        confusing: "considerable (相當大的、可觀的)",
+        phrase: "it is considerate of sb. to do sth.",
+        examPoint: "常與介系詞 of 連用，形容人的性格特質。",
+        example: "It was very considerate of him to turn down the music."
+    },
+    {
+        id: 3,
+        word: "diligent",
+        phonetic: "/ˈdɪl.ə.dʒənt/",
+        category: "情緒與性格 (Emotions)",
+        meaning: "勤奮的；認真的",
+        collocation: "diligent in one's studies",
+        confusing: "intelligent (聰明的)",
+        phrase: "work diligently",
+        examPoint: "形容詞用法，常對應會考閱讀測驗中形容好學生的關鍵字。",
+        example: "The diligent student won the top scholarship."
+    },
+    {
+        id: 4,
+        word: "curious",
+        phonetic: "/ˈkjʊr.i.əs/",
+        category: "情緒與性格 (Emotions)",
+        meaning: "好奇的",
+        collocation: "be curious about sth.",
+        confusing: "cure (治療) / curry (咖哩)",
+        phrase: "out of curiosity (基於好奇)",
+        examPoint: "固定搭配詞 be curious **about**，測驗介系詞使用。",
+        example: "Children are naturally curious about the world around them."
+    },
+    {
+        id: 5,
+        word: "generous",
+        phonetic: "/ˈdʒen.ər.əs/",
+        category: "情緒與性格 (Emotions)",
+        meaning: "慷慨的；大方的",
+        collocation: "be generous to sb. / with sth.",
+        confusing: "general (一般的)",
+        phrase: "a generous donation (慷慨的捐贈)",
+        examPoint: "常考與介系詞 to 或 with 的搭配。",
+        example: "She was generous with her time in helping others."
+    },
+    {
+        id: 6,
+        word: "efficient",
+        phonetic: "/ɪˈfɪʃ.ənt/",
+        category: "科技與工作 (Work)",
+        meaning: "有效率的",
+        collocation: "efficient use of time",
+        confusing: "effective (有效的、產生效力的)",
+        phrase: "an efficient way to learn",
+        examPoint: "會考高頻易混淆字：efficient 強調「有效率、省時省力」，effective 強調「達到了預期效果」。",
+        example: "Online learning can be a very efficient method."
+    },
+    {
+        id: 7,
+        word: "environment",
+        phonetic: "/ɪnˈvaɪ.rən.مənt/",
+        category: "自然與環境 (Nature)",
+        meaning: "環境",
+        collocation: "protect the environment",
+        confusing: "ironment (拼法陷阱)",
+        phrase: "friendly to the environment",
+        examPoint: "環保議題長篇閱讀必考名詞，衍生形容詞 *environmental*。",
+        example: "We must take action to protect our natural environment."
+    },
+    {
+        id: 8,
+        word: "flu",
+        phonetic: "/fluː/",
+        category: "醫療與健康 (Health)",
+        meaning: "流行性感冒",
+        collocation: "catch / get the flu",
+        confusing: "fly (飛) / flee (逃跑)",
+        phrase: "stomach flu (腸胃型感冒)",
+        examPoint: "固定搭配動詞 catch 或 get the flu。",
+        example: "Many people get the flu during the winter season."
+    },
+    {
+        id: 9,
+        word: "recover",
+        phonetic: "/rɪˈkʌv.ər/",
+        category: "醫療與健康 (Health)",
+        meaning: "恢復；痊癒",
+        collocation: "recover from an illness",
+        confusing: "discovery (發現)",
+        phrase: "recover one's health",
+        examPoint: "常用片語 recover **from**...",
+        example: "It took him two weeks to recover from the bad cold."
+    },
+    {
+        id: 10,
+        word: "convenient",
+        phonetic: "/kənˈviː.ni.ənt/",
+        category: "生活與設施 (Life)",
+        meaning: "方便的",
+        collocation: "be convenient for sb.",
+        confusing: "convention (會議、傳統)",
+        phrase: "if it is convenient for you",
+        examPoint: "注意：主詞通常為事物 (It is convenient for us...)，人不能直接說 I am convenient。",
+        example: "Convenience stores in Taiwan are open 24 hours a day."
+    }
+];
