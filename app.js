@@ -1,7 +1,7 @@
 const Game = {
     currentIndex: 0,
     currentSessionList: [],
-    sessionAnsweredWords: [], // 記錄這局學過的單字
+    sessionAnsweredWords: [],
     wrongBook: [],
     unlockedWardrobe: [0],
     windEnergy: 0,
@@ -56,6 +56,7 @@ const Game = {
             alert('⚠️ 題庫尚未載入！');
             return;
         }
+        // 💡 確保每次挑戰精準 20 題
         this.currentSessionList = [...VOCAB_DATABASE].sort(() => 0.5 - Math.random()).slice(0, 20);
         this.sessionAnsweredWords = [];
         this.currentIndex = 0;
@@ -96,7 +97,7 @@ const Game = {
     loadQuestion() {
         if (this.currentIndex >= this.currentSessionList.length) {
             this.rewardWardrobe();
-            this.openWritingChallenge(); // 💡 20題結束後自動進入寫作挑戰
+            this.openWritingChallenge();
             return;
         }
 
@@ -104,7 +105,6 @@ const Game = {
         const q = this.currentSessionList[this.currentIndex];
         this.activeQuestion = q;
         
-        // 記錄這局出現過的單字供寫作挑戰使用
         if (!this.sessionAnsweredWords.includes(q.word)) {
             this.sessionAnsweredWords.push(q.word);
         }
@@ -278,10 +278,8 @@ const Game = {
         }
     },
 
-    // 💡 啟動寫作挑戰畫面
     openWritingChallenge() {
         this.switchScreen('screen-writing');
-        // 從這局答題中隨機挑選 3 個單字作為寫作挑戰目標
         let shuffled = [...this.sessionAnsweredWords].sort(() => 0.5 - Math.random());
         let targets = shuffled.slice(0, 3);
         if (targets.length === 0) targets = ['efficient', 'protect', 'success'];
@@ -291,7 +289,6 @@ const Game = {
         document.getElementById('ai-feedback-box').classList.add('hidden');
     },
 
-    // 💡 提交寫作並進行智慧批改回饋
     submitWritingChallenge() {
         const inputVal = document.getElementById('writing-user-input').value.trim();
         if (!inputVal) {
@@ -299,11 +296,10 @@ const Game = {
             return;
         }
 
-        this.windEnergy += 30; // 獎勵額外風能
+        this.windEnergy += 30;
         localStorage.setItem('elysia_wind', this.windEnergy);
         this.updateStats();
 
-        // 模擬智慧批改與鼓勵回饋
         const feedbackText = `✨ 太棒了！句子結構清晰且文法正確！風神 AI 給予高度肯定：句意流暢，成功運用所學單字！額外獲得 ⚡ +30 風能獎勵！`;
         
         document.getElementById('ai-feedback-text').innerText = feedbackText;
