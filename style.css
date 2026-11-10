@@ -66,6 +66,11 @@ body {
     border-radius: 10px;
     cursor: pointer;
     font-size: 0.85rem;
+    transition: background 0.2s;
+}
+
+.nav-btn:hover {
+    background: #64748b;
 }
 
 .game-main {
@@ -146,6 +151,38 @@ body {
     flex: 1;
     display: flex;
     flex-direction: column;
+}
+
+/* 模式切換按鈕樣式 */
+.mode-btn {
+    background: #f1f5f9;
+    border: 2px solid #cbd5e1;
+    color: #64748b;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.mode-btn.active {
+    background: linear-gradient(135deg, #7c3aed 0%, #ec4899 100%);
+    color: white;
+    border-color: transparent;
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+}
+
+/* 拼字輸入框容器樣式 */
+.spell-container input {
+    font-family: inherit;
+    transition: all 0.2s;
+}
+
+.spell-container input:focus {
+    outline: none;
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 10px rgba(124, 58, 237, 0.2);
 }
 
 .card-header {
