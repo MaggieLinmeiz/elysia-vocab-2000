@@ -6,6 +6,7 @@ const Game = {
     windEnergy: parseInt(localStorage.getItem('elysia_wind')) || 0,
     score: 0,
     activeQuestion: null,
+    quizMode: 'choice', // 'choice' 或 'spell'
 
     init() {
         this.updateStats();
@@ -29,6 +30,28 @@ const Game = {
         this.loadQuestion();
     },
 
+    setMode(mode) {
+        this.quizMode = mode;
+        document.getElementById('mode-choice-btn').classList.toggle('active', mode === 'choice');
+        document.getElementById('mode-spell-btn').classList.toggle('active', mode === 'spell');
+        
+        const optionsContainer = document.getElementById('options-container');
+        const spellContainer = document.getElementById('spell-container');
+        
+        if (mode === 'choice') {
+            optionsContainer.style.display = 'grid';
+            spellContainer.style.display = 'none';
+        } else {
+            optionsContainer.style.display = 'none';
+            spellContainer.style.display = 'block';
+            const input = document.getElementById('spell-input');
+            if (input) {
+                input.value = '';
+                input.focus();
+            }
+        }
+    },
+
     loadQuestion() {
         if (this.currentIndex >= this.currentSessionList.length) {
             alert('🎉 太棒了！完成今日 20 題風元素特訓！解鎖 1 件暖暖換裝部件！');
@@ -45,23 +68,39 @@ const Game = {
         document.getElementById('vocab-phonetic').innerText = q.phonetic;
         document.getElementById('explanation-box').classList.add('hidden');
 
+        // 根據當前模式切換顯示介面
         const optionsContainer = document.getElementById('options-container');
-        optionsContainer.innerHTML = '';
+        const spellContainer = document.getElementById('spell-container');
 
-        let options = [q.meaning];
-        while (options.length < 4) {
-            let randomOpt = VOCAB_DATABASE[Math.floor(Math.random() * VOCAB_DATABASE.length)].meaning;
-            if (!options.includes(randomOpt)) options.push(randomOpt);
+        if (this.quizMode === 'choice') {
+            optionsContainer.style.display = 'grid';
+            spellContainer.style.display = 'none';
+            optionsContainer.innerHTML = '';
+
+            let options = [q.meaning];
+            while (options.length < 4) {
+                let randomOpt = VOCAB_DATABASE[Math.floor(Math.random() * VOCAB_DATABASE.length)].meaning;
+                if (!options.includes(randomOpt)) options.push(randomOpt);
+            }
+            options.sort(() => 0.5 - Math.random());
+
+            options.forEach(optText => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = optText;
+                btn.onclick = () => this.checkAnswer(optText, q.meaning, btn);
+                optionsContainer.appendChild(btn);
+            });
+        } else {
+            optionsContainer.style.display = 'none';
+            spellContainer.style.display = 'block';
+            const input = document.getElementById('spell-input');
+            if (input) {
+                input.value = '';
+                input.disabled = false;
+                input.focus();
+            }
         }
-        options.sort(() => 0.5 - Math.random());
-
-        options.forEach(optText => {
-            const btn = document.createElement('button');
-            btn.className = 'option-btn';
-            btn.innerText = optText;
-            btn.onclick = () => this.checkAnswer(optText, q.meaning, btn);
-            optionsContainer.appendChild(btn);
-        });
 
         this.speakCurrentWord();
     },
@@ -92,6 +131,31 @@ const Game = {
             }
         }
 
+        this.saveAndShowExplanation();
+    },
+
+    checkSpellAnswer() {
+        const inputElem = document.getElementById('spell-input');
+        const userWord = inputElem.value.trim().toLowerCase();
+        const correctWord = this.activeQuestion.word.trim().toLowerCase();
+        
+        inputElem.disabled = true;
+
+        if (userWord === correctWord) {
+            this.windEnergy += 15; // 拼字答對獲得更多風能獎勵！
+            this.wrongBook = this.wrongBook.filter(id => id !== this.activeQuestion.id);
+            alert('✨ 拼字正確！風元素共鳴爆發！');
+        } else {
+            if (!this.wrongBook.includes(this.activeQuestion.id)) {
+                this.wrongBook.push(this.activeQuestion.id);
+            }
+            alert(`❌ 哎呀！正確拼法應為：${this.activeQuestion.word}`);
+        }
+
+        this.saveAndShowExplanation();
+    },
+
+    saveAndShowExplanation() {
         localStorage.setItem('elysia_wrong_book', JSON.stringify(this.wrongBook));
         localStorage.setItem('elysia_wind', this.windEnergy);
         this.updateStats();
