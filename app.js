@@ -10,19 +10,6 @@ const Game = {
 
     init() {
         this.updateStats();
-        this.bindEvents();
-    },
-
-    bindEvents() {
-        // 支援鍵盤 Enter 鍵直接提交拼字答案
-        document.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && this.quizMode === 'spell') {
-                const spellInput = document.getElementById('spell-input');
-                if (spellInput && document.activeElement === spellInput && !spellInput.disabled) {
-                    this.checkSpellAnswer();
-                }
-            }
-        });
     },
 
     updateStats() {
@@ -102,6 +89,13 @@ const Game = {
                 input.value = '';
                 input.disabled = false;
                 input.focus();
+                
+                // 綁定 Enter 鍵直接送出
+                input.onkeypress = (e) => {
+                    if (e.key === 'Enter') {
+                        this.checkSpellAnswer();
+                    }
+                };
             }
         }
 
@@ -139,6 +133,8 @@ const Game = {
 
     checkSpellAnswer() {
         const inputElem = document.getElementById('spell-input');
+        if (!inputElem || inputElem.disabled) return; // 防止重複送出
+        
         const userWord = inputElem.value.trim().toLowerCase();
         const correctWord = this.activeQuestion.word.trim().toLowerCase();
         
@@ -153,7 +149,6 @@ const Game = {
             }
         }
 
-        // 靜態展示解析與累積風能，完全不跳出 alert 彈窗！
         this.saveAndShowExplanation();
     },
 
@@ -164,4 +159,51 @@ const Game = {
 
         const exp = this.activeQuestion;
         document.getElementById('vocab-word').innerText = exp.word; // 結算時還原顯示正確單字
-        document.getElementById('exp-meaning
+        document.getElementById('exp-meaning').innerText = exp.meaning;
+        document.getElementById('exp-collocation').innerText = exp.collocation;
+        document.getElementById('exp-confusing').innerText = exp.confusing;
+        document.getElementById('exp-exampoint').innerText = exp.examPoint;
+        document.getElementById('exp-example').innerText = exp.example;
+        document.getElementById('explanation-box').classList.remove('hidden');
+    },
+
+    nextQuestion() {
+        this.currentIndex++;
+        this.loadQuestion();
+    },
+
+    rewardWardrobe() {
+        if (this.unlockedWardrobe.length < 5) {
+            this.unlockedWardrobe.push(this.unlockedWardrobe.length);
+            localStorage.setItem('elysia_wardrobe', JSON.stringify(this.unlockedWardrobe));
+        }
+    },
+
+    openWardrobe() {
+        this.switchScreen('screen-wardrobe');
+        const container = document.getElementById('wardrobe-grid-container');
+        container.innerHTML = '';
+
+        const items = [
+            { name: "流光風神之翼", icon: "🦋" },
+            { name: "星空晚禮服", icon: "✨" },
+            { name: "深藍魔導帽", icon: "🪄" },
+            { name: "精靈風鈴靴", icon: "🥿" },
+            { name: "A++ 榮譽皇冠", icon: "👑" }
+        ];
+
+        items.forEach((item, index) => {
+            const isUnlocked = this.unlockedWardrobe.includes(index);
+            const div = document.createElement('div');
+            div.className = `wardrobe-item ${isUnlocked ? 'unlocked' : ''}`;
+            div.innerHTML = `<span>${item.icon}</span><p>${item.name}</p><small>${isUnlocked ? '已解鎖' : '未解鎖'}</small>`;
+            container.appendChild(div);
+        });
+    },
+
+    returnMenu() {
+        this.switchScreen('screen-menu');
+    }
+};
+
+window.onload = () => Game.init();
