@@ -35,21 +35,8 @@ const Game = {
         document.getElementById('mode-choice-btn').classList.toggle('active', mode === 'choice');
         document.getElementById('mode-spell-btn').classList.toggle('active', mode === 'spell');
         
-        const optionsContainer = document.getElementById('options-container');
-        const spellContainer = document.getElementById('spell-container');
-        
-        if (mode === 'choice') {
-            optionsContainer.style.display = 'grid';
-            spellContainer.style.display = 'none';
-        } else {
-            optionsContainer.style.display = 'none';
-            spellContainer.style.display = 'block';
-            const input = document.getElementById('spell-input');
-            if (input) {
-                input.value = '';
-                input.focus();
-            }
-        }
+        // 重新載入當前題目以切換顯示介面
+        this.loadQuestion();
     },
 
     loadQuestion() {
@@ -64,17 +51,17 @@ const Game = {
         this.activeQuestion = q;
 
         document.getElementById('vocab-category').innerText = q.category;
-        document.getElementById('vocab-word').innerText = q.word;
         document.getElementById('vocab-phonetic').innerText = q.phonetic;
         document.getElementById('explanation-box').classList.add('hidden');
 
-        // 根據當前模式切換顯示介面
         const optionsContainer = document.getElementById('options-container');
         const spellContainer = document.getElementById('spell-container');
+        const wordDisplay = document.getElementById('vocab-word');
 
         if (this.quizMode === 'choice') {
             optionsContainer.style.display = 'grid';
             spellContainer.style.display = 'none';
+            wordDisplay.innerText = q.word; // 4選1模式正常顯示英文單字
             optionsContainer.innerHTML = '';
 
             let options = [q.meaning];
@@ -94,6 +81,10 @@ const Game = {
         } else {
             optionsContainer.style.display = 'none';
             spellContainer.style.display = 'block';
+            
+            // 拼字模式隱藏英文單字，改顯示中文提示與挑戰狀態
+            wordDisplay.innerText = `✍️ 請拼出中文：「${q.meaning}」`;
+
             const input = document.getElementById('spell-input');
             if (input) {
                 input.value = '';
@@ -142,7 +133,7 @@ const Game = {
         inputElem.disabled = true;
 
         if (userWord === correctWord) {
-            this.windEnergy += 15; // 拼字答對獲得更多風能獎勵！
+            this.windEnergy += 15;
             this.wrongBook = this.wrongBook.filter(id => id !== this.activeQuestion.id);
             alert('✨ 拼字正確！風元素共鳴爆發！');
         } else {
@@ -161,6 +152,7 @@ const Game = {
         this.updateStats();
 
         const exp = this.activeQuestion;
+        document.getElementById('vocab-word').innerText = exp.word; // 結算時秀出正確單字
         document.getElementById('exp-meaning').innerText = exp.meaning;
         document.getElementById('exp-collocation').innerText = exp.collocation;
         document.getElementById('exp-confusing').innerText = exp.confusing;
