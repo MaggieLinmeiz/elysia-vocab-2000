@@ -4,6 +4,7 @@ const Game = {
     sessionAnsweredWords: [],
     wrongBook: [],
     unlockedWardrobe: [0],
+    equippedItems: [0], // 當前穿戴的配件
     windEnergy: 0,
     activeQuestion: null,
     quizMode: 'choice',
@@ -13,6 +14,7 @@ const Game = {
         try {
             this.wrongBook = JSON.parse(localStorage.getItem('elysia_wrong_book')) || [];
             this.unlockedWardrobe = JSON.parse(localStorage.getItem('elysia_wardrobe')) || [0];
+            this.equippedItems = JSON.parse(localStorage.getItem('elysia_equipped')) || [0];
             this.windEnergy = parseInt(localStorage.getItem('elysia_wind')) || 0;
         } catch (e) {
             console.log('Storage init error:', e);
@@ -115,7 +117,6 @@ const Game = {
         const phoneticElem = document.getElementById('vocab-phonetic');
         if (phoneticElem) phoneticElem.innerText = q.phonetic;
 
-        // 💡 核心語塊（藍色）：自動把括號與中文切掉，只留純英文！
         const chunkBadge = document.getElementById('vocab-chunk-badge');
         if (chunkBadge) {
             const rawCollab = q.collocation || q.word;
@@ -260,7 +261,7 @@ const Game = {
                 if (el) el.innerText = val || '';
             };
             setVal('exp-meaning', exp.meaning);
-            setVal('exp-collocation', exp.collocation); // 💡 下方解析盒保留完整中文翻譯
+            setVal('exp-collocation', exp.collocation);
             setVal('exp-confusing', exp.confusing);
             setVal('exp-exampoint', exp.examPoint);
             setVal('exp-example', exp.example);
@@ -278,8 +279,13 @@ const Game = {
     rewardWardrobe() {
         try {
             if (this.unlockedWardrobe.length < 5) {
-                this.unlockedWardrobe.push(this.unlockedWardrobe.length);
+                const newItemIndex = this.unlockedWardrobe.length;
+                this.unlockedWardrobe.push(newItemIndex);
+                if (!this.equippedItems.includes(newItemIndex)) {
+                    this.equippedItems.push(newItemIndex);
+                }
                 localStorage.setItem('elysia_wardrobe', JSON.stringify(this.unlockedWardrobe));
+                localStorage.setItem('elysia_equipped', JSON.stringify(this.equippedItems));
             }
         } catch (e) {
             console.log('Wardrobe error:', e);
@@ -347,25 +353,151 @@ const Game = {
         document.getElementById('ai-feedback-box').classList.remove('hidden');
     },
 
+    toggleEquip(index) {
+        if (!this.unlockedWardrobe.includes(index)) return;
+
+        if (this.equippedItems.includes(index)) {
+            this.equippedItems = this.equippedItems.filter(i => i !== index);
+        } else {
+            this.equippedItems.push(index);
+        }
+        localStorage.setItem('elysia_equipped', JSON.stringify(this.equippedItems));
+        this.renderAvatarStage();
+        this.openWardrobe();
+    },
+
+    renderAvatarStage() {
+        const layerIds = {
+            0: 'layer-wing',
+            1: 'layer-dress',
+            2: 'layer-hat',
+            3: 'layer-shoes',
+            4: 'layer-crown'
+        };
+
+        Object.keys(layerIds).forEach(idxStr => {
+            const idx = parseInt(idxStr);
+            const elem = document.getElementById(layerIds[idx]);
+            if (elem) {
+                if (this.equippedItems.includes(idx)) {
+                    elem.classList.remove('layer-hidden');
+                    elem.classList.add('layer-visible');
+                } else {
+                    elem.classList.remove('layer-visible');
+                    elem.classList.add('layer-hidden');
+                }
+            }
+        });
+
+        const titleElem = document.getElementById('avatar-active-title');
+        if (titleElem) {
+            if (this.equippedItems.length === 5) {
+                titleElem.innerText = '👑 奇想風神全套大滿貫姿態！';
+            } else if (this.equippedItems.length > 0) {
+                titleElem.innerText = `✨ 已穿搭 ${this.equippedItems.length} 件奇想部件`;
+            } else {
+                titleElem.innerText = '🌸 預設冒險者姿態';
+            }
+        }
+    },
+
     openWardrobe() {
         this.switchScreen('screen-wardrobe');
+
+        // 渲染夢幻 SVG 暖暖人物底圖
+        const stageElem = document.querySelector('.avatar-stage');
+        if (stageElem && !document.getElementById('svg-avatar-box')) {
+            stageElem.innerHTML = `
+                <div id="svg-avatar-box" class="svg-avatar-box">
+                    <!-- SVG 層 0: 流光風神之翼 -->
+                    <svg id="layer-wing" class="avatar-layer layer-hidden" viewBox="0 0 200 240">
+                        <path d="M 30,80 Q 0,20 80,60 Q 20,110 50,140 Z" fill="url(#wingGrad1)" opacity="0.85"/>
+                        <path d="M 170,80 Q 200,20 120,60 Q 180,110 150,140 Z" fill="url(#wingGrad1)" opacity="0.85"/>
+                        <defs>
+                            <linearGradient id="wingGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.9"/>
+                                <stop offset="100%" stop-color="#c084fc" stop-opacity="0.4"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+
+                    <!-- SVG 層: 少女長髮與身體 -->
+                    <svg class="avatar-layer" viewBox="0 0 200 240">
+                        <!-- 金粉色浪漫長髮 (底層) -->
+                        <path d="M 65,50 Q 40,100 55,170 Q 75,190 90,160 Z" fill="#fef08a"/>
+                        <path d="M 135,50 Q 160,100 145,170 Q 125,190 110,160 Z" fill="#fef08a"/>
+                        <!-- 肌膚/臉部/雙眼 -->
+                        <ellipse cx="100" cy="70" rx="25" ry="30" fill="#ffedd5"/>
+                        <ellipse cx="92" cy="72" rx="3.5" ry="5" fill="#3b82f6"/>
+                        <ellipse cx="108" cy="72" rx="3.5" ry="5" fill="#3b82f6"/>
+                        <path d="M 96,83 Q 100,86 104,83" stroke="#f43f5e" stroke-width="2" fill="none"/>
+                        <!-- 預設便服內搭 -->
+                        <path d="M 82,98 L 118,98 L 110,150 L 90,150 Z" fill="#e2e8f0"/>
+                    </svg>
+
+                    <!-- SVG 層 1: 純真奇想連身裙 -->
+                    <svg id="layer-dress" class="avatar-layer layer-hidden" viewBox="0 0 200 240">
+                        <path d="M 80,95 Q 100,105 120,95 L 140,175 Q 100,195 60,175 Z" fill="url(#dressGrad)"/>
+                        <path d="M 75,160 Q 100,175 125,160 Q 100,185 75,160" fill="#ffffff" opacity="0.6"/>
+                        <defs>
+                            <linearGradient id="dressGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#c084fc"/>
+                                <stop offset="100%" stop-color="#38bdf8"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+
+                    <!-- SVG 層 3: 輕盈踏風靴 -->
+                    <svg id="layer-shoes" class="avatar-layer layer-hidden" viewBox="0 0 200 240">
+                        <path d="M 83,185 L 94,185 L 94,208 L 80,208 Z" fill="#38bdf8"/>
+                        <path d="M 106,185 L 117,185 L 120,208 L 106,208 Z" fill="#38bdf8"/>
+                    </svg>
+
+                    <!-- SVG 層 2: 星海魔導帽 -->
+                    <svg id="layer-hat" class="avatar-layer layer-hidden" viewBox="0 0 200 240">
+                        <path d="M 60,48 Q 100,35 140,48 L 100,5 Z" fill="#6d28d9"/>
+                        <ellipse cx="100" cy="48" rx="42" ry="8" fill="#4c1d95"/>
+                        <polygon points="100,20 104,28 112,28 106,33 108,41 100,36 92,41 94,33 88,28 96,28" fill="#fef08a"/>
+                    </svg>
+
+                    <!-- SVG 層 4: 奇蹟願望榮譽皇冠 -->
+                    <svg id="layer-crown" class="avatar-layer layer-hidden" viewBox="0 0 200 240">
+                        <polygon points="78,42 85,25 93,38 100,18 107,38 115,25 122,42" fill="#fbbf24"/>
+                        <circle cx="100" cy="28" r="3" fill="#ef4444"/>
+                    </svg>
+                </div>
+                <div class="avatar-title" id="avatar-active-title">🌸 預設冒險者姿態</div>
+            `;
+        }
+
+        this.renderAvatarStage();
+
         const container = document.getElementById('wardrobe-grid-container');
         if (!container) return;
         container.innerHTML = '';
 
         const items = [
-            { name: "流光風神之翼", icon: "🦋" },
-            { name: "星空晚禮服", icon: "✨" },
-            { name: "深藍魔導帽", icon: "🪄" },
-            { name: "精靈風鈴靴", icon: "🥿" },
-            { name: "A++ 榮譽皇冠", icon: "👑" }
+            { name: "風能漂浮之翼", icon: "🦋", desc: "寫作靈感飛躍" },
+            { name: "純真奇想套裝", icon: "👗", desc: "單字淨化力" },
+            { name: "星海探索魔導帽", icon: "🪄", desc: "文法陷阱破解" },
+            { name: "輕盈踏風靴", icon: "🥿", desc: "刷題極速加速" },
+            { name: "奇蹟願望榮譽皇冠", icon: "👑", desc: "A++ 終極解鎖" }
         ];
 
         items.forEach((item, index) => {
             const isUnlocked = this.unlockedWardrobe.includes(index);
+            const isEquipped = this.equippedItems.includes(index);
             const div = document.createElement('div');
-            div.className = `wardrobe-item ${isUnlocked ? 'unlocked' : ''}`;
-            div.innerHTML = `<span>${item.icon}</span><p>${item.name}</p><small>${isUnlocked ? '已解鎖' : '未解鎖'}</small>`;
+            div.className = `wardrobe-item ${isUnlocked ? 'unlocked' : ''} ${isEquipped ? 'equipped' : ''}`;
+            div.onclick = () => this.toggleEquip(index);
+            div.innerHTML = `
+                <span>${item.icon}</span>
+                <div>
+                    <p>${item.name}</p>
+                    <small style="color: #67e8f9;">✨ ${item.desc}</small>
+                </div>
+                <small>${!isUnlocked ? '未解鎖' : (isEquipped ? '穿戴中 ✅' : '點擊穿上')} </small>
+            `;
             container.appendChild(div);
         });
     },
