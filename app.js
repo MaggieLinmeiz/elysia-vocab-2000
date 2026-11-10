@@ -1,42 +1,60 @@
 const Game = {
     currentIndex: 0,
     currentSessionList: [],
-    wrongBook: JSON.parse(localStorage.getItem('elysia_wrong_book')) || [],
-    unlockedWardrobe: JSON.parse(localStorage.getItem('elysia_wardrobe')) || [0],
-    windEnergy: parseInt(localStorage.getItem('elysia_wind')) || 0,
-    score: 0,
+    wrongBook: [],
+    unlockedWardrobe: [0],
+    windEnergy: 0,
     activeQuestion: null,
     quizMode: 'choice', // 'choice' 或 'spell'
 
     init() {
+        try {
+            this.wrongBook = JSON.parse(localStorage.getItem('elysia_wrong_book')) || [];
+            this.unlockedWardrobe = JSON.parse(localStorage.getItem('elysia_wardrobe')) || [0];
+            this.windEnergy = parseInt(localStorage.getItem('elysia_wind')) || 0;
+        } catch (e) {
+            console.log('Storage init error:', e);
+        }
         this.updateStats();
     },
 
     updateStats() {
-        document.getElementById('wind-energy').innerText = this.windEnergy;
-        document.getElementById('wrong-count').innerText = this.wrongBook.length;
-        document.getElementById('wardrobe-count').innerText = `${this.unlockedWardrobe.length}/5`;
-        
-        // 💡 更新已征服單字總數統計
-        const masteredWords = JSON.parse(localStorage.getItem('elysia_mastered_words')) || [];
-        const masteredElem = document.getElementById('total-mastered');
-        if (masteredElem) {
-            masteredElem.innerText = masteredWords.length;
-        }
+        try {
+            const windElem = document.getElementById('wind-energy');
+            if (windElem) windElem.innerText = this.windEnergy;
 
-        // 更新當前進度顯示
-        const progressElem = document.getElementById('progress-text');
-        if (progressElem && this.currentSessionList.length > 0) {
-            progressElem.innerText = `${this.currentIndex + 1} / ${this.currentSessionList.length}`;
+            const wrongElem = document.getElementById('wrong-count');
+            if (wrongElem) wrongElem.innerText = this.wrongBook.length;
+
+            const wardrobeElem = document.getElementById('wardrobe-count');
+            if (wardrobeElem) wardrobeElem.innerText = `${this.unlockedWardrobe.length}/5`;
+            
+            const masteredWords = JSON.parse(localStorage.getItem('elysia_mastered_words')) || [];
+            const masteredElem = document.getElementById('total-mastered');
+            if (masteredElem) {
+                masteredElem.innerText = masteredWords.length;
+            }
+
+            const progressElem = document.getElementById('progress-text');
+            if (progressElem && this.currentSessionList && this.currentSessionList.length > 0) {
+                progressElem.innerText = `${this.currentIndex + 1} / ${this.currentSessionList.length}`;
+            }
+        } catch (e) {
+            console.log('Update stats error:', e);
         }
     },
 
     switchScreen(screenId) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(screenId).classList.add('active');
+        const target = document.getElementById(screenId);
+        if (target) target.classList.add('active');
     },
 
     startDailySession() {
+        if (typeof VOCAB_DATABASE === 'undefined' || !VOCAB_DATABASE.length) {
+            alert('⚠️ 題庫尚未載入，請確認 vocab_data.js 是否存在！');
+            return;
+        }
         // 🎯 每次挑戰精準 20 題
         this.currentSessionList = [...VOCAB_DATABASE].sort(() => 0.5 - Math.random()).slice(0, 20);
         this.currentIndex = 0;
@@ -46,8 +64,10 @@ const Game = {
 
     setMode(mode) {
         this.quizMode = mode;
-        document.getElementById('mode-choice-btn').classList.toggle('active', mode === 'choice');
-        document.getElementById('mode-spell-btn').classList.toggle('active', mode === 'spell');
+        const choiceBtn = document.getElementById('mode-choice-btn');
+        const spellBtn = document.getElementById('mode-spell-btn');
+        if (choiceBtn) choiceBtn.classList.toggle('active', mode === 'choice');
+        if (spellBtn) spellBtn.classList.toggle('active', mode === 'spell');
         this.loadQuestion();
     },
 
@@ -63,22 +83,27 @@ const Game = {
         const q = this.currentSessionList[this.currentIndex];
         this.activeQuestion = q;
 
-        document.getElementById('vocab-category').innerText = q.category;
-        document.getElementById('vocab-phonetic').innerText = q.phonetic;
-        document.getElementById('explanation-box').classList.add('hidden');
+        const categoryElem = document.getElementById('vocab-category');
+        if (categoryElem) categoryElem.innerText = q.category;
+
+        const phoneticElem = document.getElementById('vocab-phonetic');
+        if (phoneticElem) phoneticElem.innerText = q.phonetic;
+
+        const expBox = document.getElementById('explanation-box');
+        if (expBox) expBox.classList.add('hidden');
 
         const optionsContainer = document.getElementById('options-container');
         const spellContainer = document.getElementById('spell-container');
         const wordDisplay = document.getElementById('vocab-word');
 
         if (this.quizMode === 'choice') {
-            optionsContainer.style.display = 'grid';
-            spellContainer.style.display = 'none';
-            wordDisplay.innerText = q.word;
-            optionsContainer.innerHTML = '';
+            if (optionsContainer) optionsContainer.style.display = 'grid';
+            if (spellContainer) spellContainer.style.display = 'none';
+            if (wordDisplay) wordDisplay.innerText = q.word;
+            if (optionsContainer) optionsContainer.innerHTML = '';
 
             let options = [q.meaning];
-            while (options.length < 4) {
+            while (options.length < 4 && VOCAB_DATABASE.length >= 4) {
                 let randomOpt = VOCAB_DATABASE[Math.floor(Math.random() * VOCAB_DATABASE.length)].meaning;
                 if (!options.includes(randomOpt)) options.push(randomOpt);
             }
@@ -92,10 +117,10 @@ const Game = {
                 optionsContainer.appendChild(btn);
             });
         } else {
-            optionsContainer.style.display = 'none';
-            spellContainer.style.display = 'block';
+            if (optionsContainer) optionsContainer.style.display = 'none';
+            if (spellContainer) spellContainer.style.display = 'block';
             
-            wordDisplay.innerText = `✍️ 請拼出中文：「${q.meaning}」`;
+            if (wordDisplay) wordDisplay.innerText = `✍️ 請拼出中文：「${q.meaning}」`;
 
             const input = document.getElementById('spell-input');
             if (input) {
@@ -115,18 +140,26 @@ const Game = {
     },
 
     speakCurrentWord() {
-        if ('speechSynthesis' in window && this.activeQuestion) {
-            const utterance = new SpeechSynthesisUtterance(this.activeQuestion.word);
-            utterance.lang = 'en-US';
-            window.speechSynthesis.speak(utterance);
+        try {
+            if ('speechSynthesis' in window && this.activeQuestion) {
+                const utterance = new SpeechSynthesisUtterance(this.activeQuestion.word);
+                utterance.lang = 'en-US';
+                window.speechSynthesis.speak(utterance);
+            }
+        } catch (e) {
+            console.log('Speech error:', e);
         }
     },
 
     recordMasteredWord() {
-        let masteredWords = JSON.parse(localStorage.getItem('elysia_mastered_words')) || [];
-        if (!masteredWords.includes(this.activeQuestion.id)) {
-            masteredWords.push(this.activeQuestion.id);
-            localStorage.setItem('elysia_mastered_words', JSON.stringify(masteredWords));
+        try {
+            let masteredWords = JSON.parse(localStorage.getItem('elysia_mastered_words')) || [];
+            if (this.activeQuestion && !masteredWords.includes(this.activeQuestion.id)) {
+                masteredWords.push(this.activeQuestion.id);
+                localStorage.setItem('elysia_mastered_words', JSON.stringify(masteredWords));
+            }
+        } catch (e) {
+            console.log('Record error:', e);
         }
     },
 
@@ -138,13 +171,13 @@ const Game = {
             btnElement.classList.add('correct');
             this.windEnergy += 10;
             this.wrongBook = this.wrongBook.filter(id => id !== this.activeQuestion.id);
-            this.recordMasteredWord(); // 記錄已征服
+            this.recordMasteredWord();
         } else {
             btnElement.classList.add('wrong');
             buttons.forEach(b => {
                 if (b.innerText === correct) b.classList.add('correct');
             });
-            if (!this.wrongBook.includes(this.activeQuestion.id)) {
+            if (this.activeQuestion && !this.wrongBook.includes(this.activeQuestion.id)) {
                 this.wrongBook.push(this.activeQuestion.id);
             }
         }
@@ -164,9 +197,9 @@ const Game = {
         if (userWord === correctWord) {
             this.windEnergy += 15;
             this.wrongBook = this.wrongBook.filter(id => id !== this.activeQuestion.id);
-            this.recordMasteredWord(); // 記錄已征服
+            this.recordMasteredWord();
         } else {
-            if (!this.wrongBook.includes(this.activeQuestion.id)) {
+            if (this.activeQuestion && !this.wrongBook.includes(this.activeQuestion.id)) {
                 this.wrongBook.push(this.activeQuestion.id);
             }
         }
@@ -175,18 +208,32 @@ const Game = {
     },
 
     saveAndShowExplanation() {
-        localStorage.setItem('elysia_wrong_book', JSON.stringify(this.wrongBook));
-        localStorage.setItem('elysia_wind', this.windEnergy);
+        try {
+            localStorage.setItem('elysia_wrong_book', JSON.stringify(this.wrongBook));
+            localStorage.setItem('elysia_wind', this.windEnergy);
+        } catch (e) {
+            console.log('Save error:', e);
+        }
         this.updateStats();
 
         const exp = this.activeQuestion;
-        document.getElementById('vocab-word').innerText = exp.word;
-        document.getElementById('exp-meaning').innerText = exp.meaning;
-        document.getElementById('exp-collocation').innerText = exp.collocation;
-        document.getElementById('exp-confusing').innerText = exp.confusing;
-        document.getElementById('exp-exampoint').innerText = exp.examPoint;
-        document.getElementById('exp-example').innerText = exp.example;
-        document.getElementById('explanation-box').classList.remove('hidden');
+        if (exp) {
+            const wordElem = document.getElementById('vocab-word');
+            if (wordElem) wordElem.innerText = exp.word;
+
+            const setVal = (id, val) => {
+                const el = document.getElementById(id);
+                if (el) el.innerText = val || '';
+            };
+            setVal('exp-meaning', exp.meaning);
+            setVal('exp-collocation', exp.collocation);
+            setVal('exp-confusing', exp.confusing);
+            setVal('exp-exampoint', exp.examPoint);
+            setVal('exp-example', exp.example);
+
+            const expBox = document.getElementById('explanation-box');
+            if (expBox) expBox.classList.remove('hidden');
+        }
     },
 
     nextQuestion() {
@@ -195,15 +242,20 @@ const Game = {
     },
 
     rewardWardrobe() {
-        if (this.unlockedWardrobe.length < 5) {
-            this.unlockedWardrobe.push(this.unlockedWardrobe.length);
-            localStorage.setItem('elysia_wardrobe', JSON.stringify(this.unlockedWardrobe));
+        try {
+            if (this.unlockedWardrobe.length < 5) {
+                this.unlockedWardrobe.push(this.unlockedWardrobe.length);
+                localStorage.setItem('elysia_wardrobe', JSON.stringify(this.unlockedWardrobe));
+            }
+        } catch (e) {
+            console.log('Wardrobe error:', e);
         }
     },
 
     openWardrobe() {
         this.switchScreen('screen-wardrobe');
         const container = document.getElementById('wardrobe-grid-container');
+        if (!container) return;
         container.innerHTML = '';
 
         const items = [
