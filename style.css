@@ -151,9 +151,18 @@ body {
     flex: 1;
     display: flex;
     flex-direction: column;
+    box-sizing: border-box;
 }
 
-/* 模式切換按鈕樣式 */
+/* 模式切換按鈕區樣式 */
+.mode-switch-container {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 15px;
+    width: 100%;
+}
+
 .mode-btn {
     background: #f1f5f9;
     border: 2px solid #cbd5e1;
@@ -173,16 +182,41 @@ body {
     box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
 }
 
-/* 拼字輸入框容器樣式 */
+/* 拼字輸入容器樣式 */
+.spell-container {
+    margin-top: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
 .spell-container input {
+    width: 100%;
+    padding: 14px;
+    font-size: 1.1rem;
+    border-radius: 10px;
+    border: 2px solid #cbd5e1;
+    background: #f8fafc;
+    color: var(--text-dark);
+    text-align: center;
+    box-sizing: border-box;
     font-family: inherit;
-    transition: all 0.2s;
+    font-weight: 600;
 }
 
 .spell-container input:focus {
     outline: none;
-    border-color: var(--primary-color) !important;
+    border-color: var(--primary-color);
+    background: #fff;
     box-shadow: 0 0 10px rgba(124, 58, 237, 0.2);
+}
+
+.spell-submit-btn {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
 }
 
 .card-header {
