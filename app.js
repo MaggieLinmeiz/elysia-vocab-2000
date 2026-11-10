@@ -7,6 +7,7 @@ const Game = {
     windEnergy: 0,
     activeQuestion: null,
     quizMode: 'choice',
+    selectedWritingWord: '',
 
     init() {
         try {
@@ -56,7 +57,6 @@ const Game = {
             alert('⚠️ 題庫尚未載入！');
             return;
         }
-        // 💡 嚴格鎖定每次載入精準 20 題
         this.currentSessionList = [...VOCAB_DATABASE].sort(() => 0.5 - Math.random()).slice(0, 20);
         this.sessionAnsweredWords = [];
         this.currentIndex = 0;
@@ -114,6 +114,12 @@ const Game = {
 
         const phoneticElem = document.getElementById('vocab-phonetic');
         if (phoneticElem) phoneticElem.innerText = q.phonetic;
+
+        // 💡 渲染搭配詞語塊 (Chunk)
+        const chunkBadge = document.getElementById('vocab-chunk-badge');
+        if (chunkBadge) {
+            chunkBadge.innerText = `💬 核心語塊：${q.collocation || q.word}`;
+        }
 
         const expBox = document.getElementById('explanation-box');
         if (expBox) expBox.classList.add('hidden');
@@ -281,26 +287,59 @@ const Game = {
     openWritingChallenge() {
         this.switchScreen('screen-writing');
         let shuffled = [...this.sessionAnsweredWords].sort(() => 0.5 - Math.random());
-        let targets = shuffled.slice(0, 3);
-        if (targets.length === 0) targets = ['efficient', 'protect', 'success'];
+        let targets = shuffled.slice(0, 4);
+        if (targets.length === 0) targets = ['efficient', 'protect', 'success', 'diligent'];
 
-        document.getElementById('writing-target-words').innerText = targets.join(', ');
+        this.selectedWritingWord = targets[0]; // 預設選第一個
+
+        const container = document.getElementById('writing-target-words');
+        container.innerHTML = '';
+        targets.forEach((word, idx) => {
+            const btn = document.createElement('button');
+            btn.className = `secondary-btn ${idx === 0 ? 'active-target' : ''}`;
+            btn.style.cssText = `padding: 6px 12px; font-size: 0.9rem; border-radius: 8px; cursor: pointer; border: 1px solid ${idx === 0 ? '#38bdf8' : '#7c3aed'}; background: ${idx === 0 ? 'rgba(56, 189, 248, 0.3)' : 'transparent'}; color: #fff;`;
+            btn.innerText = `🛡️ ${word}`;
+            btn.onclick = () => {
+                document.querySelectorAll('#writing-target-words button').forEach(b => {
+                    b.style.background = 'transparent';
+                    b.style.borderColor = '#7c3aed';
+                });
+                btn.style.background = 'rgba(56, 189, 248, 0.3)';
+                btn.style.borderColor = '#38bdf8';
+                this.selectedWritingWord = word;
+            };
+            container.appendChild(btn);
+        });
+
         document.getElementById('writing-user-input').value = '';
         document.getElementById('ai-feedback-box').classList.add('hidden');
+    },
+
+    applySentenceTemplate(type) {
+        const word = this.selectedWritingWord || 'efficient';
+        let sentence = '';
+        if (type === 1) {
+            sentence = `It is important to ${word} because it brings a better future.`;
+        } else if (type === 2) {
+            sentence = `To achieve success, we should use ${word} ways to solve problems.`;
+        } else if (type === 3) {
+            sentence = `Instead of giving up, utilizing ${word} can help us overcome difficulties.`;
+        }
+        document.getElementById('writing-user-input').value = sentence;
     },
 
     submitWritingChallenge() {
         const inputVal = document.getElementById('writing-user-input').value.trim();
         if (!inputVal) {
-            alert('請先輸入一句英文短句再提交喔！');
+            alert('請先點擊戰術卡生成骨架，或輸入一句英文短句再提交喔！');
             return;
         }
 
-        this.windEnergy += 30;
+        this.windEnergy += 50; // 獎勵升級
         localStorage.setItem('elysia_wind', this.windEnergy);
         this.updateStats();
 
-        const feedbackText = `✨ 太棒了！句子結構清晰且文法正確！風神 AI 給予高度肯定：句意流暢，成功運用所學單字！額外獲得 ⚡ +30 風能獎勵！`;
+        const feedbackText = `✨ 句型合成成功！風神 AI 給予高度肯定：成功運用關鍵單字與高級句構，句意流暢、邏輯清晰！額外獲得 ⚡ +50 風能與「寫作達人」榮譽！`;
         
         document.getElementById('ai-feedback-text').innerText = feedbackText;
         document.getElementById('ai-feedback-box').classList.remove('hidden');
