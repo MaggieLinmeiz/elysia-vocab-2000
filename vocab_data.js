@@ -16,7 +16,7 @@ const VOCAB_DATABASE = [
         phonetic: "/ɪˈfɪʃ.ənt/",
         category: "科技與工作 (Work & Tech)",
         meaning: "有效率的",
-        collocation: "efficient way (有效率的方法)",
+        collocation: "efficient methods (有效率的方法)",
         confusing: "effective (有效的)",
         examPoint: "強調做事省時省力、高效率，多用於工作或方法。",
         example: "We should use efficient ways to protect the environment."
@@ -27,7 +27,7 @@ const VOCAB_DATABASE = [
         phonetic: "/prəˈtekt/",
         category: "自然與環境 (Environment)",
         meaning: "保護；防衛",
-        collocation: "protect ... from ... (保護……免於……)",
+        collocation: "protect the environment (保護環境)",
         confusing: "protest (抗議)",
         examPoint: "會考超高頻動詞，常與 environment、wildlife 一起考出。",
         example: "It is everyone's duty to protect our planet."
@@ -60,7 +60,7 @@ const VOCAB_DATABASE = [
         phonetic: "/kənˈviː.ni.ənt/",
         category: "日常生活 (Daily Life)",
         meaning: "方便的；便利的",
-        collocation: "It is convenient for someone to...",
+        collocation: "be convenient for someone (對某人來說很方便)",
         confusing: "convention (大會)",
         examPoint: "常考形容詞，指地點或工具帶來生活上的便利。",
         example: "Living near the MRT station is very convenient."
@@ -71,7 +71,7 @@ const VOCAB_DATABASE = [
         phonetic: "/ɪnˈvaɪ.rən.mənt/",
         category: "自然與環境 (Environment)",
         meaning: "環境",
-        collocation: "protect the environment (保護環境)",
+        collocation: "save the environment (拯救環境)",
         confusing: "ironment (無此字)",
         examPoint: "會考必考名詞，經常在克漏字與閱讀測驗中出現。",
         example: "We must do our best to save the environment."
@@ -126,7 +126,7 @@ const VOCAB_DATABASE = [
         phonetic: "/ˈkriː.tʃər/",
         category: "自然與環境 (Environment)",
         meaning: "生物；動物",
-        collocation: "sea creature (海洋生物)",
+        collocation: "sea creatures (海洋生物)",
         confusing: "create (創造)",
         examPoint: "指任何有生命的動物或奇幻生物。",
         example: "Whales are magnificent creatures of the ocean."
@@ -170,7 +170,7 @@ const VOCAB_DATABASE = [
         phonetic: "/ˈfriː.kwənt/",
         category: "日常生活 (Daily Life)",
         meaning: "頻繁的",
-        collocation: "frequent flyer (經常搭機旅客)",
+        collocation: "frequent rain (頻繁的雨)",
         confusing: "fluent (流利的)",
         examPoint: "形容某事發生次數很多、很常發生。",
         example: "Heavy rain is frequent in this area during summer."
@@ -192,7 +192,7 @@ const VOCAB_DATABASE = [
         phonetic: "/səkˈsiːd/",
         category: "科技與工作 (Work & Tech)",
         meaning: "成功",
-        collocation: "succeed in doing something",
+        collocation: "succeed in doing (成功做某事)",
         confusing: "proceed (進行)",
         examPoint: "常考動詞，後面接 in + V-ing 表示做某事成功。",
         example: "If you work hard, you will surely succeed."
