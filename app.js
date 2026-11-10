@@ -5,7 +5,7 @@ const Game = {
     unlockedWardrobe: [0],
     windEnergy: 0,
     activeQuestion: null,
-    quizMode: 'choice', // 'choice' 或 'spell'
+    quizMode: 'choice',
 
     init() {
         try {
@@ -52,14 +52,35 @@ const Game = {
 
     startDailySession() {
         if (typeof VOCAB_DATABASE === 'undefined' || !VOCAB_DATABASE.length) {
-            alert('⚠️ 題庫尚未載入，請確認 vocab_data.js 是否存在！');
+            alert('⚠️ 題庫尚未載入！');
             return;
         }
-        // 🎯 每次挑戰精準 20 題
         this.currentSessionList = [...VOCAB_DATABASE].sort(() => 0.5 - Math.random()).slice(0, 20);
         this.currentIndex = 0;
         this.switchScreen('screen-quiz');
         this.loadQuestion();
+    },
+
+    // 💡 新增：點擊錯題本啟動專攻特訓
+    startWrongBookSession() {
+        if (!this.wrongBook || this.wrongBook.length === 0) {
+            alert('🎉 目前沒有錯題紀錄！太厲害了，繼續保持！');
+            return;
+        }
+        const wrongQuestions = VOCAB_DATABASE.filter(q => this.wrongBook.includes(q.id));
+        this.currentSessionList = wrongQuestions.sort(() => 0.5 - Math.random());
+        this.currentIndex = 0;
+        this.switchScreen('screen-quiz');
+        this.loadQuestion();
+    },
+
+    // 💡 新增：一鍵展開二週目（重置已征服進度）
+    resetProgress() {
+        if (confirm('確定要展開二週目嗎？這將會重置「已征服單字數」，重新開啟 2000 字的挑戰旅程！（風能與衣櫥裝備會保留喔）')) {
+            localStorage.setItem('elysia_mastered_words', JSON.stringify([]));
+            this.updateStats();
+            alert('✨ 二週目挑戰已啟動！繼續衝刺 A++！');
+        }
     },
 
     setMode(mode) {
