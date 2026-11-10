@@ -17,6 +17,7 @@
             <div class="stats-panel">
                 <div class="stat-badge">🌪️ 風能：<span id="wind-energy">0</span></div>
                 <button class="nav-btn" onclick="Game.openWardrobe()">👗 暖暖衣櫥：<span id="wardrobe-count">1/5</span> 件</button>
+                <!-- 💡 修正：補上 onclick 點擊事件綁定 -->
                 <button id="btn-wrong-book" class="nav-btn" onclick="Game.startWrongBookSession()">📖 錯題本 (<span id="wrong-count">0</span>)</button>
             </div>
         </header>
@@ -29,7 +30,6 @@
                     <h3>🌸 啟動你的 A++ 奇幻冒險</h3>
                     <p>結合《閃耀暖暖》的時尚衣櫥與《原神》流浪者的風元素破盾機制！過濾初級基礎字，專攻會考核心高頻單字、搭配詞與文法考點。</p>
                     
-                    <!-- 已征服單字成就統計看板 + 二週目重置按鈕 -->
                     <div class="achievement-banner" style="background: rgba(124, 58, 237, 0.2); border: 1px solid #7c3aed; padding: 12px; border-radius: 12px; margin: 15px 0; display: flex; justify-content: space-between; align-items: center;">
                         <p style="margin: 0; font-size: 0.95rem; color: #f1f5f9;">🎯 目前已征服的會考單字：<strong id="total-mastered" style="color: #67e8f9; font-size: 1.25rem;">0</strong> / 2000 個</p>
                         <button onclick="Game.resetProgress()" style="background: rgba(239, 68, 68, 0.3); border: 1px solid #ef4444; color: #fca5a5; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">🔄 展開二週目</button>
