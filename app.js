@@ -115,10 +115,12 @@ const Game = {
         const phoneticElem = document.getElementById('vocab-phonetic');
         if (phoneticElem) phoneticElem.innerText = q.phonetic;
 
-        // 💡 渲染搭配詞語塊 (Chunk)
+        // 💡 核心語塊（藍色）：自動把括號與中文切掉，只留純英文！
         const chunkBadge = document.getElementById('vocab-chunk-badge');
         if (chunkBadge) {
-            chunkBadge.innerText = `💬 核心語塊：${q.collocation || q.word}`;
+            const rawCollab = q.collocation || q.word;
+            const pureEnglishChunk = rawCollab.split('(')[0].trim();
+            chunkBadge.innerText = `💬 Chunk: ${pureEnglishChunk}`;
         }
 
         const expBox = document.getElementById('explanation-box');
@@ -258,7 +260,7 @@ const Game = {
                 if (el) el.innerText = val || '';
             };
             setVal('exp-meaning', exp.meaning);
-            setVal('exp-collocation', exp.collocation);
+            setVal('exp-collocation', exp.collocation); // 💡 下方解析盒保留完整中文翻譯
             setVal('exp-confusing', exp.confusing);
             setVal('exp-exampoint', exp.examPoint);
             setVal('exp-example', exp.example);
@@ -290,7 +292,7 @@ const Game = {
         let targets = shuffled.slice(0, 4);
         if (targets.length === 0) targets = ['efficient', 'protect', 'success', 'diligent'];
 
-        this.selectedWritingWord = targets[0]; // 預設選第一個
+        this.selectedWritingWord = targets[0];
 
         const container = document.getElementById('writing-target-words');
         container.innerHTML = '';
@@ -335,7 +337,7 @@ const Game = {
             return;
         }
 
-        this.windEnergy += 50; // 獎勵升級
+        this.windEnergy += 50;
         localStorage.setItem('elysia_wind', this.windEnergy);
         this.updateStats();
 
