@@ -12,7 +12,7 @@
         <header class="game-header">
             <div class="user-info">
                 <h2>✨ Elysia 的風元素戰術養成所</h2>
-                <p>目標：會考 A++ | 當前進度：<span id="progress-text">0 / 0</span></p>
+                <p>目標：會考 A++ | 當前進度：<span id="progress-text">0 / 20</span></p>
             </div>
             <div class="stats-panel">
                 <div class="stat-badge">🌪️ 風能：<span id="wind-energy">0</span></div>
@@ -28,6 +28,12 @@
                 <div class="hero-card">
                     <h3>🌸 啟動你的 A++ 奇幻冒險</h3>
                     <p>結合《閃耀暖暖》的時尚衣櫥與《原神》流浪者的風元素破盾機制！過濾初級基礎字，專攻會考核心高頻單字、搭配詞與文法考點。</p>
+                    
+                    <!-- 💡 新增：已征服單字成就統計看板 -->
+                    <div class="achievement-banner" style="background: rgba(124, 58, 237, 0.2); border: 1px solid #7c3aed; padding: 12px; border-radius: 12px; margin: 15px 0;">
+                        <p style="margin: 0; font-size: 0.95rem; color: #f1f5f9;">🎯 目前已征服的會考單字：<strong id="total-mastered" style="color: #67e8f9; font-size: 1.25rem;">0</strong> / 2000 個</p>
+                    </div>
+
                     <div class="menu-buttons">
                         <button class="primary-btn" onclick="Game.startDailySession()">🚀 開始今日 20 題特訓</button>
                         <button class="secondary-btn" onclick="Game.openWardrobe()">👗 查看我的暖暖衣櫥</button>
@@ -41,64 +47,4 @@
                     <div class="monster-box">
                         <span id="monster-icon">🌀</span>
                         <h4 id="monster-name">會考魔物：文法陷阱・狂風使者</h4>
-                        <div class="hp-bar-container"><div id="monster-hp" class="hp-bar" style="width: 100%;"></div></div>
-                    </div>
-                </div>
-
-                <div class="card-container">
-                    <!-- 模式切換按鈕區 -->
-                    <div class="mode-switch-container">
-                        <button id="mode-choice-btn" class="mode-btn active" onclick="Game.setMode('choice')">🎯 4選1模式</button>
-                        <button id="mode-spell-btn" class="mode-btn" onclick="Game.setMode('spell')">✏️ 拼字特訓模式</button>
-                    </div>
-
-                    <div class="card-header">
-                        <span id="vocab-category" class="tag">分類：核心單字</span>
-                        <button class="audio-btn" onclick="Game.speakCurrentWord()">🔊 讀音</button>
-                    </div>
-                    <div class="word-display">
-                        <h1 id="vocab-word">Loading...</h1>
-                        <p id="vocab-phonetic">/ ... /</p>
-                    </div>
-                    
-                    <!-- 4 選 1 選項容器 -->
-                    <div id="options-container" class="options-grid">
-                        <!-- 選項由 JS 動態生成 -->
-                    </div>
-
-                    <!-- 拼字輸入區域（預設隱藏） -->
-                    <div id="spell-container" class="spell-container" style="display: none;">
-                        <input type="text" id="spell-input" placeholder="請在此輸入正確英文單字..." autocomplete="off" spellcheck="false">
-                        <button onclick="Game.checkSpellAnswer()" class="primary-btn spell-submit-btn">提交拼字答案 ⚔️</button>
-                    </div>
-
-                    <!-- 學習解析區 (答題後展開) -->
-                    <div id="explanation-box" class="explanation-box hidden">
-                        <h4>💡 會考核心解析</h4>
-                        <p><strong>中文：</strong><span id="exp-meaning"></span></p>
-                        <p><strong>搭配詞 (Collocation)：</strong><span id="exp-collocation"></span></p>
-                        <p><strong>易混淆字：</strong><span id="exp-confusing"></span></p>
-                        <p><strong>重要考點：</strong><span id="exp-exampoint"></span></p>
-                        <p><strong>例句：</strong><span id="exp-example"></span></p>
-                        <button class="primary-btn" onclick="Game.nextQuestion()">下一題 ➔</button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- 視窗 C：暖暖衣櫥對話框 -->
-            <section id="screen-wardrobe" class="screen">
-                <h3>👗 Elysia 的風之時尚衣櫥</h3>
-                <p>每完成一組 20 題特訓，即可解鎖一套限定流光套裝部件！</p>
-                <div class="wardrobe-grid" id="wardrobe-grid-container">
-                    <!-- 裝備由 JS 生成 -->
-                </div>
-                <button class="secondary-btn" onclick="Game.returnMenu()">返回首頁</button>
-            </section>
-        </main>
-    </div>
-
-    <!-- 匯入資料與主邏輯 -->
-    <script src="vocab_data.js"></script>
-    <script src="app.js"></script>
-</body>
-</html>
+                        <div class="hp-bar
