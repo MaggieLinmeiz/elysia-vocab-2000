@@ -12,7 +12,6 @@
         <header class="game-header">
             <div class="user-info">
                 <h2>✨ Elysia 的風元素戰術養成所</h2>
-                <!-- 💡 修正這裡：把原本可能殘留的 1/10 改為 0/20 -->
                 <p>目標：會考 A++ | 當前進度：<span id="progress-text">0 / 20</span></p>
             </div>
             <div class="stats-panel">
@@ -65,6 +64,8 @@
                     <div class="word-display">
                         <h1 id="vocab-word">Loading...</h1>
                         <p id="vocab-phonetic">/ ... /</p>
+                        <!-- 💡 新增語塊（Chunk）提示 -->
+                        <div id="vocab-chunk-badge" style="margin-top: 8px; display: inline-block; background: rgba(56, 189, 248, 0.15); border: 1px solid #38bdf8; color: #38bdf8; padding: 4px 12px; border-radius: 20px; font-size: 0.9rem; font-weight: bold;"></div>
                     </div>
                     
                     <div id="options-container" class="options-grid"></div>
@@ -86,21 +87,37 @@
                 </div>
             </section>
 
-            <!-- 視窗 D：AI 寫作挑戰結算畫面 -->
+            <!-- 視窗 D：AI 寫作挑戰結算畫面（升級版：句型戰術卡） -->
             <section id="screen-writing" class="screen">
                 <div class="hero-card" style="text-align: left;">
                     <h3>✨ 恭喜通關今日 20 題特訓！</h3>
-                    <p>解鎖了全新的流光套裝部件！現在進入「風神祝福・寫作小挑戰」，把剛才學到的單字靈活運用出來吧！</p>
+                    <p>解鎖了全新的流光套裝部件！現在進入「風神祝福・寫作小挑戰」，挑選戰術卡片合成高分句子吧！</p>
                     
                     <div style="background: rgba(124, 58, 237, 0.2); border: 1px solid #7c3aed; padding: 15px; border-radius: 12px; margin: 15px 0;">
-                        <p style="margin: 0 0 8px 0; color: #f1f5f9; font-weight: bold;">📝 挑戰任務：請從以下剛學到的單字中挑選 3 個，寫出一句英文短句：</p>
-                        <div id="writing-target-words" style="color: #67e8f9; font-size: 1.1rem; font-weight: bold; margin-bottom: 10px;"></div>
-                        <textarea id="writing-user-input" rows="3" placeholder="Type your English sentence here... (e.g., We should use efficient ways to protect the environment.)" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #7c3aed; background: #0f172a; color: #fff; font-size: 1rem; resize: none;"></textarea>
-                        <button class="primary-btn" onclick="Game.submitWritingChallenge()" style="margin-top: 10px; width: 100%;">🚀 提交給風神 AI 批改並領取獎勵</button>
+                        <p style="margin: 0 0 8px 0; color: #f1f5f9; font-weight: bold;">🛡️ 步驟 1：點擊鎖定本局核心單字：</p>
+                        <div id="writing-target-words" style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;"></div>
+
+                        <p style="margin: 0 0 8px 0; color: #f1f5f9; font-weight: bold;">⚔️ 步驟 2：選擇句型戰術卡（點擊自動填入骨架）：</p>
+                        <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px;">
+                            <button onclick="Game.applySentenceTemplate(1)" style="text-align: left; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #34d399; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">
+                                🟢 <strong>【初階・因果連結卡】</strong> It is important to [單字] because...
+                            </button>
+                            <button onclick="Game.applySentenceTemplate(2)" style="text-align: left; background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; color: #38bdf8; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">
+                                🔵 <strong>【中階・建議觀點卡】</strong> To achieve success, we should use [單字] ways to...
+                            </button>
+                            <button onclick="Game.applySentenceTemplate(3)" style="text-align: left; background: rgba(168, 85, 247, 0.2); border: 1px solid #a855f7; color: #c084fc; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">
+                                🟣 <strong>⚡【TOEFL 高分對比卡】</strong> Instead of giving up, utilizing [單字] can help us...
+                            </button>
+                        </div>
+
+                        <p style="margin: 0 0 6px 0; color: #f1f5f9; font-weight: bold;">✍️ 步驟 3：微調並完成你的英文短句：</p>
+                        <textarea id="writing-user-input" rows="3" placeholder="點擊上方卡片自動生成骨架，或直接在此輸入..." style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #7c3aed; background: #0f172a; color: #fff; font-size: 1rem; resize: none;"></textarea>
+                        
+                        <button class="primary-btn" onclick="Game.submitWritingChallenge()" style="margin-top: 10px; width: 100%;">🚀 發動風能句型・提交批改並領取獎勵</button>
                     </div>
 
                     <div id="ai-feedback-box" class="hidden" style="background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; padding: 15px; border-radius: 12px; margin-top: 15px;">
-                        <h4 style="color: #34d399; margin-top: 0;">🤖 風神 AI 批改報告</h4>
+                        <h4 style="color: #34d399; margin-top: 0;">🤖 風神 AI 戰績報告</h4>
                         <p id="ai-feedback-text" style="color: #e2e8f0; margin-bottom: 10px;"></p>
                         <button class="primary-btn" onclick="Game.returnMenu()" style="background: #10b981; width: 100%;">返回首頁 ➔</button>
                     </div>
