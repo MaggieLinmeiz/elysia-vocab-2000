@@ -79,6 +79,14 @@ const Game = {
 
     nextQuestion() {
         if (this.currentWordIndex >= this.currentBatchWords.length) {
+            // 💡 關鍵修復：如果是錯題本特訓模式 (999)，結束時直接跳出提示並回首頁，絕不進入寫作關卡！
+            if (this.currentGroupIndex === 999) {
+                alert("🎉 太棒了！錯題本特訓完畢，已成功清除所有錯題！");
+                this.returnMenu();
+                return;
+            }
+
+            // 一般日常 20 題特訓完成，才進入寫作挑戰
             this.prepareWritingChallenge();
             this.switchScreen('screen-writing');
             return;
@@ -339,7 +347,6 @@ const Game = {
     submitWritingChallenge() {
         const input = document.getElementById('writing-user-input');
         const text = input ? input.value.trim() : '';
-        previous_feedbackBox = document.getElementById('ai-feedback-box');
         const feedbackText = document.getElementById('ai-feedback-text');
 
         if (!text) {
