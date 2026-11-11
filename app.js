@@ -17,101 +17,18 @@ const Game = {
     init() {
         console.log("Elysia Game Initializing...");
         
-        const db = typeof VOCAB_DATA !== 'undefined' ? VOCAB_DATA : (typeof VOCAB_DATABASE !== 'undefined' ? VOCAB_DATABASE : []);
+        // 💡 升級版安全防護：同時相容 VOCAB_DATA、VOCAB_DATABASE 與 vocabData，確保 1850 單字庫完美讀取
+        const db = typeof VOCAB_DATA !== 'undefined' ? VOCAB_DATA : 
+                   (typeof VOCAB_DATABASE !== 'undefined' ? VOCAB_DATABASE : 
+                   (typeof vocabData !== 'undefined' ? vocabData : []));
         
         if (!Array.isArray(db) || db.length === 0) {
-            alert("警告：單字資料庫 (vocab_data.js) 尚未正確載入！");
+            console.error("警告：單字資料庫尚未正確載入！");
+            alert("警告：單字資料庫 (vocab_data.js) 尚未正確載入！請檢查 GitHub 上的檔案。");
             return;
         }
 
-        this.updateStats();
-    },
-
-    switchScreen(screenId) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        const target = document.getElementById(screenId);
-        if (target) target.classList.add('active');
-    },
-
-    returnMenu() {
-        this.switchScreen('screen-menu');
-        this.updateStats();
-    },
-
-    updateStats() {
-        const totalMasteredElem = document.getElementById('total-mastered');
-        if (totalMasteredElem) totalMasteredElem.innerText = this.masteredWords.length;
-
-        const windEnergyElem = document.getElementById('wind-energy');
-        if (windEnergyElem) windEnergyElem.innerText = this.windEnergy;
-
-        const wrongCountElem = document.getElementById('wrong-count');
-        if (wrongCountElem) wrongCountElem.innerText = this.wrongWords.length;
-    },
-
-    startDailySession() {
-        this.currentGroupIndex = 0; // 日常特訓從第 0 組開始
-        const db = typeof VOCAB_DATA !== 'undefined' ? VOCAB_DATA : (typeof VOCAB_DATABASE !== 'undefined' ? VOCAB_DATABASE : []);
-        
-        const startIdx = this.currentGroupIndex * 20;
-        const endIdx = startIdx + 20;
-        
-        const rawBatch = db.slice(startIdx, endIdx);
-        if (rawBatch.length === 0) {
-            alert("太棒了！您已經完成所有單字的特訓！將為您重新循環。");
-            this.currentGroupIndex = 0;
-            this.startDailySession();
-            return;
-        }
-
-        this.currentBatchWords = rawBatch.filter(item => !this.masteredWords.includes(item.word));
-
-        if (this.currentBatchWords.length === 0) {
-            this.currentGroupIndex++;
-            this.startDailySession();
-            return;
-        }
-
-        this.currentWordIndex = 0;
-        this.switchScreen('screen-quiz');
-        this.nextQuestion();
-    },
-
-    nextQuestion() {
-        if (this.currentWordIndex >= this.currentBatchWords.length) {
-            // 💡 關鍵修復：如果是錯題本特訓模式 (999)，結束時直接跳出提示並回首頁，絕不進入寫作關卡！
-            if (this.currentGroupIndex === 999) {
-                alert("🎉 太棒了！錯題本特訓完畢，已成功清除所有錯題！");
-                this.returnMenu();
-                return;
-            }
-
-            // 一般日常 20 題特訓完成，才進入寫作挑戰
-            this.prepareWritingChallenge();
-            this.switchScreen('screen-writing');
-            return;
-        }
-
-        this.currentQuestion = this.currentBatchWords[this.currentWordIndex];
-        this.answeredCorrectlyFirstTry = true;
-
-        const expBox = document.getElementById('explanation-box');
-        if (expBox) expBox.classList.add('hidden');
-
-        const optionsContainer = document.getElementById('options-container');
-        const spellContainer = document.getElementById('spell-container');
-        
-        if (this.currentMode === 'choice') {
-            if (optionsContainer) optionsContainer.style.display = 'grid';
-            if (spellContainer) spellContainer.style.display = 'none';
-        } else {
-            // 拼字模式 (包含錯題本特訓)
-            if (optionsContainer) optionsContainer.style.display = 'none';
-            if (spellContainer) {
-                spellContainer.style.display = 'block';
-                // 顯示拼字提示（中文解釋）
-                const promptElem = document.getElementById('spell-prompt');
-                if (promptElem) promptElem.innerText = `請拼出中文涵義為：「${this.currentQuestion.meaning}」的英文單字`;
+        console.log(`成功載入單字庫，總計：${db.length} 字`); this.updateStats(); },  switchScreen(screenId) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); const target = document.getElementById(screenId); if (target) target.classList.add('active'); },  returnMenu() { this.switchScreen('screen-menu'); this.updateStats(); },  updateStats() { const totalMasteredElem = document.getElementById('total-mastered'); if (totalMasteredElem) totalMasteredElem.innerText = this.masteredWords.length;  const windEnergyElem = document.getElementById('wind-energy'); if (windEnergyElem) windEnergyElem.innerText = this.windEnergy;  const wrongCountElem = document.getElementById('wrong-count'); if (wrongCountElem) wrongCountElem.innerText = this.wrongWords.length; },  startDailySession() { this.currentGroupIndex = 0; // 日常特訓從第 0 組開始 const db = typeof VOCAB_DATA !== 'undefined' ? VOCAB_DATA : (typeof VOCAB_DATABASE !== 'undefined' ? VOCAB_DATABASE : (typeof vocabData !== 'undefined' ? vocabData : []));  const startIdx = this.currentGroupIndex * 20; const endIdx = startIdx + 20;  const rawBatch = db.slice(startIdx, endIdx); if (rawBatch.length === 0) { alert("太棒了！您已經完成所有單字的特訓！將為您重新循環。"); this.currentGroupIndex = 0; this.startDailySession(); return; }  this.currentBatchWords = rawBatch.filter(item => !this.masteredWords.includes(item.word));  if (this.currentBatchWords.length === 0) { this.currentGroupIndex++; this.startDailySession(); return; }  this.currentWordIndex = 0; this.switchScreen('screen-quiz'); this.nextQuestion(); },  nextQuestion() { if (this.currentWordIndex >= this.currentBatchWords.length) { // 💡 關鍵修復：如果是錯題本特訓模式 (999)，結束時直接跳出提示並回首頁，絕不進入寫作關卡！ if (this.currentGroupIndex === 999) { alert("🎉 太棒了！錯題本特訓完畢，已成功清除所有錯題！"); this.returnMenu(); return; }  // 一般日常 20 題特訓完成，才進入寫作挑戰 this.prepareWritingChallenge(); this.switchScreen('screen-writing'); return; }  this.currentQuestion = this.currentBatchWords[this.currentWordIndex]; this.answeredCorrectlyFirstTry = true;  const expBox = document.getElementById('explanation-box'); if (expBox) expBox.classList.add('hidden');  const optionsContainer = document.getElementById('options-container'); const spellContainer = document.getElementById('spell-container');  if (this.currentMode === 'choice') { if (optionsContainer) optionsContainer.style.display = 'grid'; if (spellContainer) spellContainer.style.display = 'none'; } else { // 拼字模式 (包含錯題本特訓) if (optionsContainer) optionsContainer.style.display = 'none'; if (spellContainer) { spellContainer.style.display = 'block'; // 顯示拼字提示（中文解釋） const promptElem = document.getElementById('spell-prompt'); if (promptElem) promptElem.innerText = `請拼出中文涵義為：「${this.currentQuestion.meaning}」的英文單字`;
             }
             const spellInput = document.getElementById('spell-input');
             if (spellInput) {
@@ -134,14 +51,7 @@ const Game = {
         if (this.currentMode === 'spell') {
             wordContainer.innerHTML = `✍️ 錯題拼字畢業考 <span style="font-size: 1.2rem; color: #38bdf8; font-weight: normal;">[請依中文拼字]</span>`;
         } else {
-            const posText = q.pos ? ` [${q.pos}]` : '';
-            wordContainer.innerHTML = `${q.word} <span style="font-size: 1.2rem; color: #38bdf8; font-weight: normal;">${posText}</span>`;
-        }
-        
-        document.getElementById('vocab-phonetic').innerText = q.phonetic || '';
-        
-        const themeText = q.theme || q.category || '會考核心';
-        document.getElementById('vocab-category').innerText = `📌 主題：${themeText}`;
+            const posText = q.pos ? ` [${q.pos}]` : ''; wordContainer.innerHTML = `${q.word} <span style="font-size: 1.2rem; color: #38bdf8; font-weight: normal;">${posText}</span>`; }  document.getElementById('vocab-phonetic').innerText = q.phonetic \vert{}\vert{} '';  const themeText = q.theme \vert{}\vert{} q.category \vert{}\vert{} '會考核心'; document.getElementById('vocab-category').innerText = `📌 主題：${themeText}`;
         
         // 💡 智慧遮蔽 Chunk 內的答案，防止拼字測驗直接露餡
         const chunkBadge = document.getElementById('vocab-chunk-badge');
@@ -152,21 +62,7 @@ const Game = {
                     const regex = new RegExp(q.word, 'gi');
                     safeCollocation = safeCollocation.replace(regex, '______');
                 }
-                chunkBadge.innerText = `Chunk: ${safeCollocation}`;
-            } else {
-                chunkBadge.innerText = '';
-            }
-        }
-
-        const progressText = document.getElementById('progress-text');
-        if (progressText) {
-            progressText.innerText = `${this.currentWordIndex + 1} / ${this.currentBatchWords.length} (錯題特訓)`;
-        }
-
-        const hpBar = document.getElementById('monster-hp');
-        if (hpBar) {
-            const hpPercent = ((this.currentBatchWords.length - this.currentWordIndex) / this.currentBatchWords.length) * 100;
-            hpBar.style.width = `${hpPercent}%`;
+                chunkBadge.innerText = `Chunk: ${safeCollocation}`; } else { chunkBadge.innerText = ''; } }  const progressText = document.getElementById('progress-text'); if (progressText) { progressText.innerText = `${this.currentWordIndex + 1} / ${this.currentBatchWords.length} (錯題特訓)`; }  const hpBar = document.getElementById('monster-hp'); if (hpBar) { const hpPercent = ((this.currentBatchWords.length - this.currentWordIndex) / this.currentBatchWords.length) * 100; hpBar.style.width = `${hpPercent}%`;
         }
 
         if (this.currentMode === 'choice') {
@@ -179,7 +75,9 @@ const Game = {
         if (!container) return;
         container.innerHTML = '';
 
-        const db = typeof VOCAB_DATA !== 'undefined' ? VOCAB_DATA : VOCAB_DATABASE;
+        const db = typeof VOCAB_DATA !== 'undefined' ? VOCAB_DATA : 
+                   (typeof VOCAB_DATABASE !== 'undefined' ? VOCAB_DATABASE : 
+                   (typeof vocabData !== 'undefined' ? vocabData : []));
         let options = [this.currentQuestion.meaning];
 
         while (options.length < 4 && db.length > 0) {
@@ -228,19 +126,7 @@ const Game = {
             }
             
             this.updateStats();
-            alert(`答錯囉！正確答案是：${q.meaning}`);
-            this.showExplanation(false);
-        }
-    },
-
-    submitSpellAnswer() {
-        const input = document.getElementById('spell-input');
-        if (!input) return;
-        const userVal = input.value.trim().toLowerCase();
-        const q = this.currentQuestion;
-
-        if (userVal === q.word.toLowerCase()) {
-            alert(`太棒了！拼寫正確：${q.word}`);
+            alert(`答錯囉！正確答案是：${q.meaning}`); this.showExplanation(false); } },  submitSpellAnswer() { const input = document.getElementById('spell-input'); if (!input) return; const userVal = input.value.trim().toLowerCase(); const q = this.currentQuestion;  if (userVal === q.word.toLowerCase()) { alert(`太棒了！拼寫正確：${q.word}`);
 
             if (this.currentGroupIndex === 999) {
                 this.wrongWords = this.wrongWords.filter(w => w !== q.word);
@@ -253,78 +139,7 @@ const Game = {
 
             this.showExplanation(true);
         } else {
-            alert(`拼寫錯誤囉！正確單字是：${q.word}`);
-            if (!this.wrongWords.includes(q.word)) {
-                this.wrongWords.push(q.word);
-                localStorage.setItem('elysia_wrong_words', JSON.stringify(this.wrongWords));
-            }
-            this.updateStats();
-            this.showExplanation(false);
-        }
-    },
-
-    showExplanation(isCorrect) {
-        const q = this.currentQuestion;
-        
-        document.getElementById('exp-meaning').innerText = `${q.word} = ${q.meaning}`;
-        document.getElementById('exp-collocation').innerText = q.collocation || '無';
-        document.getElementById('exp-confusing').innerText = q.confusing || '無';
-        document.getElementById('exp-exampoint').innerText = q.examPoint || '無';
-        document.getElementById('exp-example').innerText = q.example || '無';
-
-        const expBox = document.getElementById('explanation-box');
-        if (expBox) expBox.classList.remove('hidden');
-
-        const optionsContainer = document.getElementById('options-container');
-        if (optionsContainer) optionsContainer.style.display = 'none';
-        
-        const spellContainer = document.getElementById('spell-container');
-        if (spellContainer) spellContainer.style.display = 'none';
-
-        this.currentWordIndex++;
-        this.updateStats();
-    },
-
-    setMode(mode) {
-        this.currentMode = mode;
-        const choiceBtn = document.getElementById('mode-choice-btn');
-        const spellBtn = document.getElementById('mode-spell-btn');
-        if (mode === 'choice') {
-            if (choiceBtn) choiceBtn.classList.add('active');
-            if (spellBtn) spellBtn.classList.remove('active');
-        } else {
-            if (spellBtn) spellBtn.classList.add('active');
-            if (choiceBtn) choiceBtn.classList.remove('active');
-        }
-        this.currentGroupIndex = 0;
-        this.startDailySession();
-    },
-
-    speakCurrentWord() {
-        if (!this.currentQuestion) return;
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(this.currentQuestion.word);
-        utterance.lang = 'en-US';
-        window.speechSynthesis.speak(utterance);
-    },
-
-    prepareWritingChallenge() {
-        const container = document.getElementById('writing-target-words');
-        if (!container) return;
-        container.innerHTML = '';
-
-        this.currentBatchWords.forEach(item => {
-            const tag = document.createElement('span');
-            tag.innerText = item.word;
-            tag.style.background = 'rgba(56, 189, 248, 0.2)';
-            tag.style.border = '1px solid #38bdf8';
-            tag.style.color = '#38bdf8';
-            tag.style.padding = '4px 10px';
-            tag.style.borderRadius = '6px';
-            tag.style.cursor = 'pointer';
-            tag.onclick = () => {
-                const input = document.getElementById('writing-user-input');
-                if (input) input.value += ` ${item.word} `;
+            alert(`拼寫錯誤囉！正確單字是：${q.word}`); if (!this.wrongWords.includes(q.word)) { this.wrongWords.push(q.word); localStorage.setItem('elysia_wrong_words', JSON.stringify(this.wrongWords)); } this.updateStats(); this.showExplanation(false); } },  showExplanation(isCorrect) { const q = this.currentQuestion;  document.getElementById('exp-meaning').innerText = `${q.word} = ${q.meaning}`; document.getElementById('exp-collocation').innerText = q.collocation \vert{}\vert{} '無'; document.getElementById('exp-confusing').innerText = q.confusing \vert{}\vert{} '無'; document.getElementById('exp-exampoint').innerText = q.examPoint \vert{}\vert{} '無'; document.getElementById('exp-example').innerText = q.example \vert{}\vert{} '無';  const expBox = document.getElementById('explanation-box'); if (expBox) expBox.classList.remove('hidden');  const optionsContainer = document.getElementById('options-container'); if (optionsContainer) optionsContainer.style.display = 'none';  const spellContainer = document.getElementById('spell-container'); if (spellContainer) spellContainer.style.display = 'none';  this.currentWordIndex++; this.updateStats(); },  setMode(mode) { this.currentMode = mode; const choiceBtn = document.getElementById('mode-choice-btn'); const spellBtn = document.getElementById('mode-spell-btn'); if (mode === 'choice') { if (choiceBtn) choiceBtn.classList.add('active'); if (spellBtn) spellBtn.classList.remove('active'); } else { if (spellBtn) spellBtn.classList.add('active'); if (choiceBtn) choiceBtn.classList.remove('active'); } this.currentGroupIndex = 0; this.startDailySession(); },  speakCurrentWord() { if (!this.currentQuestion) return; window.speechSynthesis.cancel(); const utterance = new SpeechSynthesisUtterance(this.currentQuestion.word); utterance.lang = 'en-US'; window.speechSynthesis.speak(utterance); },  prepareWritingChallenge() { const container = document.getElementById('writing-target-words'); if (!container) return; container.innerHTML = '';  this.currentBatchWords.forEach(item => { const tag = document.createElement('span'); tag.innerText = item.word; tag.style.background = 'rgba(56, 189, 248, 0.2)'; tag.style.border = '1px solid #38bdf8'; tag.style.color = '#38bdf8'; tag.style.padding = '4px 10px'; tag.style.borderRadius = '6px'; tag.style.cursor = 'pointer'; tag.onclick = () => { const input = document.getElementById('writing-user-input'); if (input) input.value += ` ${item.word} `;
             };
             container.appendChild(tag);
         });
@@ -357,63 +172,4 @@ const Game = {
         const feedbackBox = document.getElementById('ai-feedback-box');
         if (feedbackBox) feedbackBox.classList.remove('hidden');
         if (feedbackText) {
-            feedbackText.innerHTML = `🌟 <strong>風神 AI 點評：</strong>您的造句 <em>「${text}」</em> 結構完整，文法正確！成功解鎖下一組冒險進度，風能 +20！`;
-        }
-        this.windEnergy += 20;
-        localStorage.setItem('elysia_wind_energy', this.windEnergy);
-        this.currentGroupIndex++;
-        this.updateStats();
-    },
-
-    openWardrobe() {
-        this.switchScreen('screen-wardrobe');
-        const container = document.getElementById('wardrobe-grid-container');
-        if (!container) return;
-        container.innerHTML = `
-            <div style="background: rgba(124, 58, 237, 0.2); border: 1px solid #7c3aed; padding: 15px; border-radius: 12px; text-align: center;">
-                <h4>👗 流浪者的風向套裝 (第 1/5 件)</h4>
-                <p>已征服單字數：${this.masteredWords.length} 個</p>
-                <p style="color: #34d399;">✨ 達成 2000 單全制霸即可解鎖傳說外觀！</p>
-            </div>
-        `;
-    },
-
-    resetProgress() {
-        if (confirm("確定要重置所有已掌握的單字與進度，展開二週目嗎？")) {
-            localStorage.removeItem('elysia_mastered_words');
-            localStorage.removeItem('elysia_wind_energy');
-            localStorage.removeItem('elysia_wrong_words');
-            this.masteredWords = [];
-            this.windEnergy = 0;
-            this.wrongWords = [];
-            this.currentGroupIndex = 0;
-            this.updateStats();
-            alert("已成功展開二週目！");
-        }
-    },
-
-    startWrongBookSession() {
-        if (this.wrongWords.length === 0) {
-            alert("太棒了！目前錯題本中沒有錯題，快去挑戰日常特訓吧！");
-            return;
-        }
-
-        const db = typeof VOCAB_DATA !== 'undefined' ? VOCAB_DATA : (typeof VOCAB_DATABASE !== 'undefined' ? VOCAB_DATABASE : []);
-        this.currentBatchWords = db.filter(item => this.wrongWords.includes(item.word));
-
-        if (this.currentBatchWords.length === 0) {
-            alert("目前沒有找到對應的錯題單字資料。");
-            return;
-        }
-
-        this.currentGroupIndex = 999;
-        this.currentMode = 'spell';
-        this.currentWordIndex = 0;
-        this.switchScreen('screen-quiz');
-        this.nextQuestion();
-    }
-};
-
-window.onload = () => {
-    Game.init();
-};
+            feedbackText.innerHTML = `🌟 <strong>風神 AI 點評：</strong>
