@@ -1,6 +1,5 @@
 // ==========================================
 // Elysia 的奇想風元素戰養成所 - 核心邏輯 (app.js)
-// 邏輯設計：每組 20 字，組內不重複、組間不重複；答對即標記掌握並篩除
 // ==========================================
 
 let currentGroupIndex = 0;
@@ -8,49 +7,78 @@ let currentBatchWords = [];
 let currentWordIndex = 0;
 let score = 0;
 let masteredWords = JSON.parse(localStorage.getItem('elysia_mastered_words') || '[]');
-let wrongWords = [];
 let currentQuestion = null;
-let answeredCorrectlyFirstTry = false;
+let answeredCorrectlyFirstTry = true;
 
 // 初始化遊戲
 function initGame() {
-    loadProgress();
-    setupGroupSelector();
+    console.log("Game initializing...");
     
-    // 綁定首頁「開始今日 20 題特訓」按鈕事件
-    const startBtn = document.getElementById('start-btn') || document.querySelector('.start-btn') || document.querySelector('button');
+    // 檢查 VOCAB_DATA 是否存在
+    if (typeof VOCAB_DATA === 'undefined' || !Array.isArray(VOCAB_DATA) || VOCAB_DATA.length === 0) {
+        console.error("VOCAB_DATA 未載入！");
+        alert("警告：單字資料庫 (vocab_data.js) 尚未正確載入，請確認 GitHub 上的檔案是否完整！");
+        return;
+    }
+
+    updateStats();
+    setupEventListeners();
+}
+
+// 設定所有按鈕事件綁定
+function setupEventListeners() {
+    // 開始按鈕
+    const startBtn = document.getElementById('start-btn') || document.querySelector('.start-btn');
     if (startBtn) {
         startBtn.onclick = function() {
-            // 隱藏首頁遮罩或區塊，開始遊戲
-            const welcomeModal = document.getElementById('welcome-modal') || document.querySelector('.welcome-screen');
-            if (welcomeModal) welcomeModal.style.display = 'none';
-            loadBatch(currentGroupIndex);
+            startTraining();
+        };
+    }
+
+    // 奇想衣櫃按鈕
+    const wardrobeBtn = document.getElementById('wardrobe-btn') || document.querySelector('.wardrobe-btn');
+    if (wardrobeBtn) {
+        wardrobeBtn.onclick = function() {
+            openWardrobe();
         };
     }
 }
 
-// 載入指定組別 (每組 20 字，排除已掌握的單字)
+// 開始特訓
+function startTraining() {
+    const welcomeScreen = document.getElementById('welcome-modal') || document.querySelector('.welcome-screen') || document.getElementById('landing-screen');
+    if (welcomeScreen) {
+        welcomeScreen.style.display = 'none';
+    }
+    loadBatch(currentGroupIndex);
+}
+
+// 載入指定組別 (每組 20 字)
 function loadBatch(groupIndex) {
     currentGroupIndex = groupIndex;
     
-    const startIdx = groupIndex * 20;
-    const endIdx = startIdx + 20;
+    let startIdx = groupIndex * 20;
+    let endIdx = startIdx + 20;
     
-    const rawBatch = (typeof VOCAB_DATA !== 'undefined' ? VOCAB_DATA : []).slice(startIdx, endIdx);
-    
-    if (rawBatch.length === 0) {
-        alert("恭喜！已經沒有更多單字了！");
-        return;
+    if (startIdx >= VOCAB_DATA.length) {
+        alert("恭喜！已經完成所有 2000 單字特訓！");
+        currentGroupIndex = 0;
+        startIdx = 0;
+        endIdx = 20;
     }
-
+    
+    const rawBatch = VOCAB_DATA.slice(startIdx, endIdx);
+    
+    // 過濾已掌握的單字
     currentBatchWords = rawBatch.filter(item => !masteredWords.includes(item.word));
     
     if (currentBatchWords.length === 0) {
+        // 如果這一組剛好全背完了，自動跳下一組
         if ((groupIndex + 1) * 20 < VOCAB_DATA.length) {
             loadBatch(groupIndex + 1);
             return;
         } else {
-            alert("太棒了！2000單全部通關完成！");
+            alert("太棒了！所有單字皆已掌握完畢！");
             return;
         }
     }
@@ -59,7 +87,7 @@ function loadBatch(groupIndex) {
     nextQuestion();
 }
 
-// 產生下一題
+// 下一題
 function nextQuestion() {
     if (currentWordIndex >= currentBatchWords.length) {
         alert(`恭喜完成第 ${currentGroupIndex + 1} 組特訓！`);
@@ -72,13 +100,14 @@ function nextQuestion() {
     }
 
     currentQuestion = currentBatchWords[currentWordIndex];
-    answeredCorrectlyFirstTry = true; 
-
+    answeredCorrectlyFirstTry = true;
     updateUI();
 }
 
 // 檢查答案
 function checkAnswer(selectedMeaning) {
+    if (!currentQuestion) return;
+    
     const correctAnswer = currentQuestion.meaning;
 
     if (selectedMeaning === correctAnswer) {
@@ -88,8 +117,8 @@ function checkAnswer(selectedMeaning) {
                 localStorage.setItem('elysia_mastered_words', JSON.stringify(masteredWords));
             }
         }
-        
         score += 10;
+        updateStats();
         currentWordIndex++;
         setTimeout(nextQuestion, 400);
     } else {
@@ -98,7 +127,7 @@ function checkAnswer(selectedMeaning) {
     }
 }
 
-// 畫面更新
+// 更新介面
 function updateUI() {
     const wordTitle = document.getElementById('word-title');
     const wordPhonetic = document.getElementById('word-phonetic');
@@ -111,6 +140,7 @@ function updateUI() {
     generateOptions();
 }
 
+// 生成選項
 function generateOptions() {
     const optionsContainer = document.getElementById('options-container');
     if (!optionsContainer) return;
@@ -131,14 +161,23 @@ function generateOptions() {
         btn.className = 'option-btn';
         btn.innerText = opt;
         btn.style.margin = '8px';
-        btn.style.padding = '10px 20px';
+        btn.style.padding = '12px 20px';
         btn.style.cursor = 'pointer';
         btn.onclick = () => checkAnswer(opt);
         optionsContainer.appendChild(btn);
     });
 }
 
-function loadProgress() {}
-function setupGroupSelector() {}
+// 更新統計數據
+function updateStats() {
+    const masteredCountElem = document.getElementById('mastered-count') || document.querySelector('.mastered-count');
+    if (masteredCountElem) {
+        masteredCountElem.innerText = masteredWords.length;
+    }
+}
+
+function openWardrobe() {
+    alert("奇想衣櫃：目前已征服 " + masteredWords.length + " 個單字！繼續加油！");
+}
 
 window.onload = initGame;
