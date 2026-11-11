@@ -1,7 +1,7 @@
 // 總單字量（已過濾國小基礎單字，聚焦國中會考、高中學測與多益核心）
 const TOTAL_VOCAB_COUNT = 1850;
 
-window.vocabData = [
+const vocabData = [
   { id: 1, word: "technology", pos: "n.", theme: "科技與創新", phonetic: "/tekˈnɑːlədʒi/", meaning: "科技", collocation: "modern technology", confusing: "technique", examPoint: "字尾 -logy 表示學問或科學。", example: "Technology changes our lives." },
   { id: 2, word: "digital", pos: "adj.", theme: "科技與創新", phonetic: "/ˈdɪdʒɪtəl/", meaning: "數位的", collocation: "digital camera", confusing: "digit", examPoint: "形容詞常用於 3C 產品。", example: "We live in a digital age." },
   { id: 3, word: "innovation", pos: "n.", theme: "科技與創新", phonetic: "/ˌɪnəˈveɪʃən/", meaning: "創新", collocation: "technical innovation", confusing: "invasion", examPoint: "動詞為 innovate。", example: "Innovation drives company growth." },
@@ -1853,3 +1853,7 @@ window.vocabData = [
   { id: 1849, word: "justice_1849", pos: "n.", theme: "社會與法律", phonetic: "/ˈdʒʌstɪs/", meaning: "司法；正義", collocation: "social justice", confusing: "justification", examPoint: "形容詞為 just。", example: "People demand fairness and justice." },
   { id: 1850, word: "regulation_1850", pos: "n.", theme: "社會與法律", phonetic: "/ˌreɡjuˈleɪʃən/", meaning: "規章；條例", collocation: "safety regulation", confusing: "relation", examPoint: "動詞為 regulate。", example: "Strict safety regulations are enforced." }
 ];
+// 將陣列指定給全域變數，供 app.js 讀取
+window.vocabData = vocabData;
+window.words = vocabData;
+window.VOCAB_LIST = vocabData;
