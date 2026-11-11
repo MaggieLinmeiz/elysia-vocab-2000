@@ -50,6 +50,7 @@ const Game = {
     },
 
     startDailySession() {
+        this.currentGroupIndex = 0; // 日常特訓從第 0 組開始
         const db = typeof VOCAB_DATA !== 'undefined' ? VOCAB_DATA : (typeof VOCAB_DATABASE !== 'undefined' ? VOCAB_DATABASE : []);
         
         const startIdx = this.currentGroupIndex * 20;
@@ -91,14 +92,24 @@ const Game = {
 
         const optionsContainer = document.getElementById('options-container');
         const spellContainer = document.getElementById('spell-container');
+        
         if (this.currentMode === 'choice') {
             if (optionsContainer) optionsContainer.style.display = 'grid';
             if (spellContainer) spellContainer.style.display = 'none';
         } else {
+            // 拼字模式 (包含錯題本特訓)
             if (optionsContainer) optionsContainer.style.display = 'none';
-            if (spellContainer) spellContainer.style.display = 'block';
+            if (spellContainer) {
+                spellContainer.style.display = 'block';
+                // 顯示拼字提示（中文解釋）
+                const promptElem = document.getElementById('spell-prompt');
+                if (promptElem) promptElem.innerText = `請拼出中文涵義為：「${this.currentQuestion.meaning}」的英文單字`;
+            }
             const spellInput = document.getElementById('spell-input');
-            if (spellInput) spellInput.value = '';
+            if (spellInput) {
+                spellInput.value = '';
+                spellInput.focus();
+            }
         }
 
         this.updateQuizUI();
@@ -111,13 +122,17 @@ const Game = {
         const q = this.currentQuestion;
         if (!q) return;
 
-        // 💡 讓詞性直接跟在單字旁邊顯示（例如：efficient [adj.]）
-        const posText = q.pos ? ` [${q.pos}]` : '';
-        document.getElementById('vocab-word').innerHTML = `${q.word} <span style="font-size: 1.2rem; color: #38bdf8; font-weight: normal;">${posText}</span>`;
+        // 如果是選擇題模式才顯示英文單字；如果是錯題本拼字模式，則隱藏英文單字僅保留中文提示，達到真正默寫測驗
+        const wordContainer = document.getElementById('vocab-word');
+        if (this.currentMode === 'spell') {
+            wordContainer.innerHTML = `✍️ 錯題拼字畢業考 <span style="font-size: 1.2rem; color: #38bdf8; font-weight: normal;">[請依中文拼字]</span>`;
+        } else {
+            const posText = q.pos ? ` [${q.pos}]` : '';
+            wordContainer.innerHTML = `${q.word} <span style="font-size: 1.2rem; color: #38bdf8; font-weight: normal;">${posText}</span>`;
+        }
         
         document.getElementById('vocab-phonetic').innerText = q.phonetic || '';
         
-        // 分類改為主題標籤
         const themeText = q.theme || q.category || '會考核心';
         document.getElementById('vocab-category').innerText = `📌 主題：${themeText}`;
         
@@ -128,7 +143,7 @@ const Game = {
 
         const progressText = document.getElementById('progress-text');
         if (progressText) {
-            progressText.innerText = `${this.currentWordIndex + 1} / ${this.currentBatchWords.length} (第 ${this.currentGroupIndex + 1} 組)`;
+            progressText.innerText = `${this.currentWordIndex + 1} / ${this.currentBatchWords.length} (錯題特訓)`;
         }
 
         const hpBar = document.getElementById('monster-hp');
@@ -195,19 +210,51 @@ const Game = {
                 localStorage.setItem('elysia_wrong_words', JSON.stringify(this.wrongWords));
             }
             
-            // 💡 即時更新錯題本與各項統計數據
             this.updateStats();
-
             alert(`答錯囉！正確答案是：${q.meaning}`);
-            
-            // 💡 答錯後顯示解析並自動推進
+            this.showExplanation(false);
+        }
+    },
+
+    // 💡 拼字模式送出驗證（錯題畢業考核心邏輯）
+    submitSpellAnswer() {
+        const input = document.getElementById('spell-input');
+        if (!input) return;
+        const userVal = input.value.trim().toLowerCase();
+        const q = this.currentQuestion;
+
+        if (userVal === q.word.toLowerCase()) {
+            // 拼對了！
+            alert(`太棒了！拼寫正確：${q.word}`);
+
+            // 如果是在錯題本特訓模式 (currentGroupIndex === 999)，拼對即代表畢業，從錯題本移除！
+            if (this.currentGroupIndex === 999) {
+                this.wrongWords = this.wrongWords.filter(w => w !== q.word);
+                localStorage.setItem('elysia_wrong_words', JSON.stringify(this.wrongWords));
+                this.updateStats();
+            }
+
+            this.windEnergy += 15; // 拼字答對獎勵更多風能
+            localStorage.setItem('elysia_wind_energy', this.windEnergy);
+
+            this.showExplanation(true);
+        } else {
+            alert(`拼寫錯誤囉！正確單字是：${q.word}`);
+            // 確保錯題本內有記錄
+            if (!this.wrongWords.includes(q.word)) {
+                this.wrongWords.push(q.word);
+                localStorage.setItem('elysia_wrong_words', JSON.stringify(this.wrongWords));
+            }
+            this.updateStats();
             this.showExplanation(false);
         }
     },
 
     showExplanation(isCorrect) {
         const q = this.currentQuestion;
-        document.getElementById('exp-meaning').innerText = q.meaning;
+        
+        // 解析畫面補上正確單字提示
+        document.getElementById('exp-meaning').innerText = `${q.word} = ${q.meaning}`;
         document.getElementById('exp-collocation').innerText = q.collocation || '無';
         document.getElementById('exp-confusing').innerText = q.confusing || '無';
         document.getElementById('exp-exampoint').innerText = q.examPoint || '無';
@@ -218,6 +265,9 @@ const Game = {
 
         const optionsContainer = document.getElementById('options-container');
         if (optionsContainer) optionsContainer.style.display = 'none';
+        
+        const spellContainer = document.getElementById('spell-container');
+        if (spellContainer) spellContainer.style.display = 'none';
 
         this.currentWordIndex++;
         this.updateStats();
@@ -234,7 +284,8 @@ const Game = {
             if (spellBtn) spellBtn.classList.add('active');
             if (choiceBtn) choiceBtn.classList.remove('active');
         }
-        this.nextQuestion();
+        this.currentGroupIndex = 0; // 一般模式切換
+        this.startDailySession();
     },
 
     speakCurrentWord() {
@@ -329,8 +380,26 @@ const Game = {
         }
     },
 
+    // 💡 錯題本特訓：強制切換為拼字模式（打字畢業考）
     startWrongBookSession() {
-        alert("錯題本功能開發中：目前累計錯題數 " + this.wrongWords.length + " 個。");
+        if (this.wrongWords.length === 0) {
+            alert("太棒了！目前錯題本中沒有錯題，快去挑戰日常特訓吧！");
+            return;
+        }
+
+        const db = typeof VOCAB_DATA !== 'undefined' ? VOCAB_DATA : (typeof VOCAB_DATABASE !== 'undefined' ? VOCAB_DATABASE : []);
+        this.currentBatchWords = db.filter(item => this.wrongWords.includes(item.word));
+
+        if (this.currentBatchWords.length === 0) {
+            alert("目前沒有找到對應的錯題單字資料。");
+            return;
+        }
+
+        this.currentGroupIndex = 999; // 標示為錯題本特訓模式
+        this.currentMode = 'spell';  // ⚡ 強制指定為拼字打字模式！
+        this.currentWordIndex = 0;
+        this.switchScreen('screen-quiz');
+        this.nextQuestion();
     }
 };
 
