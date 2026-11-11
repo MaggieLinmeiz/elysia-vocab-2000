@@ -42,11 +42,7 @@ const Game = {
             yesterday.setDate(yesterday.getDate() - 1);
 
             if (lastLoginDate === yesterday.toDateString()) {
-                // 昨天有登入，連續天數 +1
                 currentStreak += 1;
-            } else if (lastLoginDate && lastLoginDate !== today) {
-                // 超過一天沒登入，重置為 1 (或保留，看您希望嚴格還是溫柔，這裡採溫柔累計)
-                // 若希望斷掉重置可改為 currentStreak = 1;
             }
             localStorage.setItem('elysia_last_login_date', today);
             localStorage.setItem('elysia_streak_days', currentStreak);
@@ -75,9 +71,6 @@ const Game = {
         const wrongCountElem = document.getElementById('wrong-count');
         if (wrongCountElem) wrongCountElem.innerText = this.wrongWords.length;
 
-        // 動態更新頂部標語為：「目標：奇想大師・風神祝福 ｜ 🔥 奇想靈感：連續第 X 天」
-        const subtitleElem = document.querySelector('.screen-menu p, .main-subtitle, header p') || document.querySelector('div[style*="font-size"]');
-        // 同時我們也可以直接抓取副標題欄位進行更新
         const headerSub = document.getElementById('header-subtitle');
         if (headerSub) {
             headerSub.innerHTML = `🎯 目標：奇想大師・風神祝福 ｜ 🔥 奇想靈感：連續第 ${this.streakDays} 天`;
@@ -437,4 +430,21 @@ const Game = {
         const db = typeof VOCAB_DATA !== 'undefined' ? VOCAB_DATA : 
                    (typeof VOCAB_DATABASE !== 'undefined' ? VOCAB_DATABASE : 
                    (typeof vocabData !== 'undefined' ? vocabData : []));
-        this.currentBatchWords
+        this.currentBatchWords = db.filter(item => this.wrongWords.includes(item.word));
+
+        if (this.currentBatchWords.length === 0) {
+            alert("目前沒有找到對應的錯題單字資料。");
+            return;
+        }
+
+        this.currentGroupIndex = 999;
+        this.currentMode = 'spell';
+        this.currentWordIndex = 0;
+        this.switchScreen('screen-quiz');
+        this.nextQuestion();
+    }
+};
+
+window.onload = () => {
+    Game.init();
+};
