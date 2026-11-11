@@ -1,7 +1,7 @@
 // 總單字量（已過濾國小基礎單字，聚焦國中會考、高中學測與多益核心）
 const TOTAL_VOCAB_COUNT = 1850;
 
-const vocabData = [
+window.vocabData = [
   { id: 1, word: "technology", pos: "n.", theme: "科技與創新", phonetic: "/tekˈnɑːlədʒi/", meaning: "科技", collocation: "modern technology", confusing: "technique", examPoint: "字尾 -logy 表示學問或科學。", example: "Technology changes our lives." },
   { id: 2, word: "digital", pos: "adj.", theme: "科技與創新", phonetic: "/ˈdɪdʒɪtəl/", meaning: "數位的", collocation: "digital camera", confusing: "digit", examPoint: "形容詞常用於 3C 產品。", example: "We live in a digital age." },
   { id: 3, word: "innovation", pos: "n.", theme: "科技與創新", phonetic: "/ˌɪnəˈveɪʃən/", meaning: "創新", collocation: "technical innovation", confusing: "invasion", examPoint: "動詞為 innovate。", example: "Innovation drives company growth." },
