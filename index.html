@@ -70,8 +70,10 @@
                     <div id="options-container" class="options-grid"></div>
 
                     <div id="spell-container" class="spell-container" style="display: none;">
+                        <p id="spell-prompt" style="color: #38bdf8; margin-bottom: 8px; font-weight: bold;"></p>
                         <input type="text" id="spell-input" placeholder="請在此輸入正確英文單字..." autocomplete="off" spellcheck="false">
-                        <button onclick="Game.checkSpellAnswer()" class="primary-btn spell-submit-btn">提交拼字答案 ⚔️</button>
+                        <!-- 💡 修正按鈕對應的函式為 submitSpellAnswer -->
+                        <button onclick="Game.submitSpellAnswer()" class="primary-btn spell-submit-btn">提交拼字答案 ⚔️</button>
                     </div>
 
                     <div id="explanation-box" class="explanation-box hidden">
