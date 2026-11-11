@@ -194,7 +194,14 @@ const Game = {
                 this.wrongWords.push(q.word);
                 localStorage.setItem('elysia_wrong_words', JSON.stringify(this.wrongWords));
             }
+            
+            // 💡 即時更新錯題本與各項統計數據
+            this.updateStats();
+
             alert(`答錯囉！正確答案是：${q.meaning}`);
+            
+            // 💡 答錯後顯示解析並自動推進
+            this.showExplanation(false);
         }
     },
 
