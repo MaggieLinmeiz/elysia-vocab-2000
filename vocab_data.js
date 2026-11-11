@@ -1857,3 +1857,5 @@ const vocabData = [
 window.vocabData = vocabData;
 window.words = vocabData;
 window.VOCAB_LIST = vocabData;
+window.VOCAB_DATA = vocabData;
+window.VOCAB_DATABASE = vocabData;
