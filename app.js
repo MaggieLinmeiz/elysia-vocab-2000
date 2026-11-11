@@ -16,30 +16,36 @@ let answeredCorrectlyFirstTry = false;
 function initGame() {
     loadProgress();
     setupGroupSelector();
-    loadBatch(currentGroupIndex);
+    
+    // 綁定首頁「開始今日 20 題特訓」按鈕事件
+    const startBtn = document.getElementById('start-btn') || document.querySelector('.start-btn') || document.querySelector('button');
+    if (startBtn) {
+        startBtn.onclick = function() {
+            // 隱藏首頁遮罩或區塊，開始遊戲
+            const welcomeModal = document.getElementById('welcome-modal') || document.querySelector('.welcome-screen');
+            if (welcomeModal) welcomeModal.style.display = 'none';
+            loadBatch(currentGroupIndex);
+        };
+    }
 }
 
 // 載入指定組別 (每組 20 字，排除已掌握的單字)
 function loadBatch(groupIndex) {
     currentGroupIndex = groupIndex;
     
-    // 計算每組 20 個單字的範圍
     const startIdx = groupIndex * 20;
     const endIdx = startIdx + 20;
     
-    // 從 VOCAB_DATA 取出該區間的單字
-    const rawBatch = VOCAB_DATA.slice(startIdx, endIdx);
+    const rawBatch = (typeof VOCAB_DATA !== 'undefined' ? VOCAB_DATA : []).slice(startIdx, endIdx);
     
     if (rawBatch.length === 0) {
         alert("恭喜！已經沒有更多單字了！");
         return;
     }
 
-    // 過濾掉已經掌握的單字，但確保每一組的基礎 20 字池是固定且不重複的
     currentBatchWords = rawBatch.filter(item => !masteredWords.includes(item.word));
     
     if (currentBatchWords.length === 0) {
-        // 如果這一組都背完了，自動跳下一組
         if ((groupIndex + 1) * 20 < VOCAB_DATA.length) {
             loadBatch(groupIndex + 1);
             return;
@@ -56,9 +62,7 @@ function loadBatch(groupIndex) {
 // 產生下一題
 function nextQuestion() {
     if (currentWordIndex >= currentBatchWords.length) {
-        // 該組結算
         alert(`恭喜完成第 ${currentGroupIndex + 1} 組特訓！`);
-        // 自動進下一組
         if ((currentGroupIndex + 1) * 20 < VOCAB_DATA.length) {
             loadBatch(currentGroupIndex + 1);
         } else {
@@ -68,7 +72,7 @@ function nextQuestion() {
     }
 
     currentQuestion = currentBatchWords[currentWordIndex];
-    answeredCorrectlyFirstTry = true; // 預設第一次答題
+    answeredCorrectlyFirstTry = true; 
 
     updateUI();
 }
@@ -79,7 +83,6 @@ function checkAnswer(selectedMeaning) {
 
     if (selectedMeaning === correctAnswer) {
         if (answeredCorrectlyFirstTry) {
-            // 第一次就答對：直接加入已掌握清單，不再重複出現
             if (!masteredWords.includes(currentQuestion.word)) {
                 masteredWords.push(currentQuestion.word);
                 localStorage.setItem('elysia_mastered_words', JSON.stringify(masteredWords));
@@ -87,63 +90,55 @@ function checkAnswer(selectedMeaning) {
         }
         
         score += 10;
-        playAudioFeedback(true);
-        
-        // 進入下一題
         currentWordIndex++;
-        setTimeout(nextQuestion, 500);
+        setTimeout(nextQuestion, 400);
     } else {
-        // 答錯了：標記為非第一次答對，留在本組稍後或重新練習
         answeredCorrectlyFirstTry = false;
-        playAudioFeedback(false);
         alert(`答錯囉！正確答案是：${correctAnswer}`);
     }
 }
 
 // 畫面更新
 function updateUI() {
-    document.getElementById('word-title').innerText = currentQuestion.word;
-    document.getElementById('word-phonetic').innerText = currentQuestion.phonetic;
-    document.getElementById('progress-text').innerText = `目前進度：${currentWordIndex + 1} / ${currentBatchWords.length} (第 ${currentGroupIndex + 1} 組)`;
+    const wordTitle = document.getElementById('word-title');
+    const wordPhonetic = document.getElementById('word-phonetic');
+    const progressText = document.getElementById('progress-text');
+
+    if (wordTitle) wordTitle.innerText = currentQuestion.word;
+    if (wordPhonetic) wordPhonetic.innerText = currentQuestion.phonetic || '';
+    if (progressText) progressText.innerText = `目前進度：${currentWordIndex + 1} / ${currentBatchWords.length} (第 ${currentGroupIndex + 1} 組)`;
     
-    // 生成 4 選 1 選項
     generateOptions();
 }
 
 function generateOptions() {
     const optionsContainer = document.getElementById('options-container');
+    if (!optionsContainer) return;
+    
     optionsContainer.innerHTML = '';
 
-    // 隨機選出 3 個錯誤選項 + 1個正確答案
     let options = [currentQuestion.meaning];
-    while (options.length < 4) {
+    while (options.length < 4 && typeof VOCAB_DATA !== 'undefined') {
         const randomItem = VOCAB_DATA[Math.floor(Math.random() * VOCAB_DATA.length)];
         if (!options.includes(randomItem.meaning)) {
             options.push(randomItem.meaning);
         }
     }
-    // 隨機打散選項順序
     options.sort(() => Math.random() - 0.5);
 
     options.forEach(opt => {
         const btn = document.createElement('button');
         btn.className = 'option-btn';
         btn.innerText = opt;
+        btn.style.margin = '8px';
+        btn.style.padding = '10px 20px';
+        btn.style.cursor = 'pointer';
         btn.onclick = () => checkAnswer(opt);
         optionsContainer.appendChild(btn);
     });
 }
 
-function playAudioFeedback(isCorrect) {
-    // 簡易音效或視覺回饋
-}
-
-function loadProgress() {
-    // 載入進度
-}
-
-function setupGroupSelector() {
-    // 設定組別選單
-}
+function loadProgress() {}
+function setupGroupSelector() {}
 
 window.onload = initGame;
