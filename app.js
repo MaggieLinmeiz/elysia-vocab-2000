@@ -53,7 +53,6 @@ const Game = {
     },
 
     startDailySession() {
-        this.currentGroupIndex = 0;
         const db = typeof VOCAB_DATA !== 'undefined' ? VOCAB_DATA : 
                    (typeof VOCAB_DATABASE !== 'undefined' ? VOCAB_DATABASE : 
                    (typeof vocabData !== 'undefined' ? vocabData : []));
@@ -63,14 +62,17 @@ const Game = {
         
         const rawBatch = db.slice(startIdx, endIdx);
         if (rawBatch.length === 0) {
-            alert("太棒了！您已經完成所有單字的特訓！將為您重新循環。");
+            alert("🎉 太棒了！您已經征服了所有單字！將為您重置進度循環訓練。");
             this.currentGroupIndex = 0;
+            this.masteredWords = [];
+            localStorage.removeItem('elysia_mastered_words');
             this.startDailySession();
             return;
         }
 
         this.currentBatchWords = rawBatch.filter(item => !this.masteredWords.includes(item.word));
 
+        // 如果這 20 個剛好都背完了，自動跳到下一組，不使用遞迴避免堆疊溢位
         if (this.currentBatchWords.length === 0) {
             this.currentGroupIndex++;
             this.startDailySession();
@@ -158,7 +160,7 @@ const Game = {
 
         const progressText = document.getElementById('progress-text');
         if (progressText) {
-            progressText.innerText = `${this.currentWordIndex + 1} / ${this.currentBatchWords.length} (錯題特訓)`;
+            progressText.innerText = `${this.currentWordIndex + 1} / ${this.currentBatchWords.length} (特訓進行中)`;
         }
 
         const hpBar = document.getElementById('monster-hp');
