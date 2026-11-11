@@ -103,7 +103,7 @@ const Game = {
 
         this.updateQuizUI();
 
-        // 💡 題目一出現，自動同步語音朗讀
+        // 題目一出現自動發音
         this.speakCurrentWord();
     },
 
@@ -111,9 +111,15 @@ const Game = {
         const q = this.currentQuestion;
         if (!q) return;
 
-        document.getElementById('vocab-word').innerText = q.word;
+        // 💡 讓詞性直接跟在單字旁邊顯示（例如：efficient [adj.]）
+        const posText = q.pos ? ` [${q.pos}]` : '';
+        document.getElementById('vocab-word').innerHTML = `${q.word} <span style="font-size: 1.2rem; color: #38bdf8; font-weight: normal;">${posText}</span>`;
+        
         document.getElementById('vocab-phonetic').innerText = q.phonetic || '';
-        document.getElementById('vocab-category').innerText = `分類：${q.category || '核心單字'}`;
+        
+        // 分類改為主題標籤
+        const themeText = q.theme || q.category || '會考核心';
+        document.getElementById('vocab-category').innerText = `📌 主題：${themeText}`;
         
         const chunkBadge = document.getElementById('vocab-chunk-badge');
         if (chunkBadge) {
@@ -226,7 +232,7 @@ const Game = {
 
     speakCurrentWord() {
         if (!this.currentQuestion) return;
-        window.speechSynthesis.cancel(); // 避免語音重疊堆疊
+        window.speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance(this.currentQuestion.word);
         utterance.lang = 'en-US';
         window.speechSynthesis.speak(utterance);
