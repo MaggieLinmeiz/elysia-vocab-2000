@@ -1,4 +1,4 @@
-const VOCAB_DATABASE = [
+const VOCAB_DATA = [
     {
         "id": 1,
         "word": "considerate",
