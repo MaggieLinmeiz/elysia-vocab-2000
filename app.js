@@ -17,34 +17,28 @@ const Game = {
     init() {
         console.log("Elysia Game Initializing...");
         
-        // 檢查資料庫是否存在 (支援 VOCAB_DATA 或 VOCAB_DATABASE)
         const db = typeof VOCAB_DATA !== 'undefined' ? VOCAB_DATA : (typeof VOCAB_DATABASE !== 'undefined' ? VOCAB_DATABASE : []);
         
         if (!Array.isArray(db) || db.length === 0) {
-            alert("警告：單字資料庫 (vocab_data.js) 尚未正確載入，請確認變數名稱是否為 VOCAB_DATA！");
+            alert("警告：單字資料庫 (vocab_data.js) 尚未正確載入！");
             return;
         }
 
         this.updateStats();
     },
 
-    // 切換畫面視窗
     switchScreen(screenId) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         const target = document.getElementById(screenId);
         if (target) target.classList.add('active');
     },
 
-    // 返回首頁
     returnMenu() {
         this.switchScreen('screen-menu');
         this.updateStats();
     },
 
-    // 更新頂部統計數據
     updateStats() {
-        const db = typeof VOCAB_DATA !== 'undefined' ? VOCAB_DATA : (typeof VOCAB_DATABASE !== 'undefined' ? VOCAB_DATABASE : []);
-        
         const totalMasteredElem = document.getElementById('total-mastered');
         if (totalMasteredElem) totalMasteredElem.innerText = this.masteredWords.length;
 
@@ -55,11 +49,9 @@ const Game = {
         if (wrongCountElem) wrongCountElem.innerText = this.wrongWords.length;
     },
 
-    // 開始今日 20 題特訓
     startDailySession() {
         const db = typeof VOCAB_DATA !== 'undefined' ? VOCAB_DATA : (typeof VOCAB_DATABASE !== 'undefined' ? VOCAB_DATABASE : []);
         
-        // 計算當前進度組別 (每組 20 題)
         const startIdx = this.currentGroupIndex * 20;
         const endIdx = startIdx + 20;
         
@@ -71,11 +63,9 @@ const Game = {
             return;
         }
 
-        // 過濾已掌握的單字，確保組內不重複、組間獨立
         this.currentBatchWords = rawBatch.filter(item => !this.masteredWords.includes(item.word));
 
         if (this.currentBatchWords.length === 0) {
-            // 如果這組全背完了，自動跳下一組
             this.currentGroupIndex++;
             this.startDailySession();
             return;
@@ -86,10 +76,8 @@ const Game = {
         this.nextQuestion();
     },
 
-    // 下一題
     nextQuestion() {
         if (this.currentWordIndex >= this.currentBatchWords.length) {
-            // 該組 20 題特訓完成，進入 AI 寫作挑戰畫面
             this.prepareWritingChallenge();
             this.switchScreen('screen-writing');
             return;
@@ -98,11 +86,9 @@ const Game = {
         this.currentQuestion = this.currentBatchWords[this.currentWordIndex];
         this.answeredCorrectlyFirstTry = true;
 
-        // 隱藏解析框
         const expBox = document.getElementById('explanation-box');
         if (expBox) expBox.classList.add('hidden');
 
-        // 顯示解題介面
         const optionsContainer = document.getElementById('options-container');
         const spellContainer = document.getElementById('spell-container');
         if (this.currentMode === 'choice') {
@@ -116,9 +102,11 @@ const Game = {
         }
 
         this.updateQuizUI();
+
+        // 💡 題目一出現，自動同步語音朗讀
+        this.speakCurrentWord();
     },
 
-    // 更新測驗 UI
     updateQuizUI() {
         const q = this.currentQuestion;
         if (!q) return;
@@ -137,7 +125,6 @@ const Game = {
             progressText.innerText = `${this.currentWordIndex + 1} / ${this.currentBatchWords.length} (第 ${this.currentGroupIndex + 1} 組)`;
         }
 
-        // 更新魔物血條
         const hpBar = document.getElementById('monster-hp');
         if (hpBar) {
             const hpPercent = ((this.currentBatchWords.length - this.currentWordIndex) / this.currentBatchWords.length) * 100;
@@ -149,7 +136,6 @@ const Game = {
         }
     },
 
-    // 生成 4 選 1 選項
     generateOptions() {
         const container = document.getElementById('options-container');
         if (!container) return;
@@ -182,13 +168,10 @@ const Game = {
         });
     },
 
-    // 檢查 4 選 1 答案
     checkChoiceAnswer(selectedMeaning) {
         const q = this.currentQuestion;
-        const expBox = document.getElementById('explanation-box');
 
         if (selectedMeaning === q.meaning) {
-            // 答對
             if (this.answeredCorrectlyFirstTry) {
                 if (!this.masteredWords.includes(q.word)) {
                     this.masteredWords.push(q.word);
@@ -200,7 +183,6 @@ const Game = {
 
             this.showExplanation(true);
         } else {
-            // 答錯
             this.answeredCorrectlyFirstTry = false;
             if (!this.wrongWords.includes(q.word)) {
                 this.wrongWords.push(q.word);
@@ -210,7 +192,6 @@ const Game = {
         }
     },
 
-    // 顯示詳細解析
     showExplanation(isCorrect) {
         const q = this.currentQuestion;
         document.getElementById('exp-meaning').innerText = q.meaning;
@@ -222,7 +203,6 @@ const Game = {
         const expBox = document.getElementById('explanation-box');
         if (expBox) expBox.classList.remove('hidden');
 
-        // 隱藏選項，準備進入下一題
         const optionsContainer = document.getElementById('options-container');
         if (optionsContainer) optionsContainer.style.display = 'none';
 
@@ -230,7 +210,6 @@ const Game = {
         this.updateStats();
     },
 
-    // 模式切換
     setMode(mode) {
         this.currentMode = mode;
         const choiceBtn = document.getElementById('mode-choice-btn');
@@ -245,21 +224,19 @@ const Game = {
         this.nextQuestion();
     },
 
-    // 語音朗讀
     speakCurrentWord() {
         if (!this.currentQuestion) return;
+        window.speechSynthesis.cancel(); // 避免語音重疊堆疊
         const utterance = new SpeechSynthesisUtterance(this.currentQuestion.word);
         utterance.lang = 'en-US';
         window.speechSynthesis.speak(utterance);
     },
 
-    // 準備寫作挑戰
     prepareWritingChallenge() {
         const container = document.getElementById('writing-target-words');
         if (!container) return;
         container.innerHTML = '';
 
-        // 取出這組幾個單字讓使用者點擊鎖定
         this.currentBatchWords.forEach(item => {
             const tag = document.createElement('span');
             tag.innerText = item.word;
@@ -277,7 +254,6 @@ const Game = {
         });
     },
 
-    // 應用句型範本
     applySentenceTemplate(type) {
         const input = document.getElementById('writing-user-input');
         if (!input) return;
@@ -292,7 +268,6 @@ const Game = {
         }
     },
 
-    // 提交寫作挑戰
     submitWritingChallenge() {
         const input = document.getElementById('writing-user-input');
         const text = input ? input.value.trim() : '';
@@ -314,7 +289,6 @@ const Game = {
         this.updateStats();
     },
 
-    // 開啟衣櫥
     openWardrobe() {
         this.switchScreen('screen-wardrobe');
         const container = document.getElementById('wardrobe-grid-container');
@@ -328,7 +302,6 @@ const Game = {
         `;
     },
 
-    // 重置進度 (展開二週目)
     resetProgress() {
         if (confirm("確定要重置所有已掌握的單字與進度，展開二週目嗎？")) {
             localStorage.removeItem('elysia_mastered_words');
@@ -348,7 +321,6 @@ const Game = {
     }
 };
 
-// 頁面載入完成後初始化
 window.onload = () => {
     Game.init();
 };
